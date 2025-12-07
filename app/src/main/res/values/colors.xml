@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="colorPrimaryPink">#F5A9B8</color>
+
+    <color name="colorLightPink">#FDEFF2</color>
+
+    <color name="colorDarkText">#333333</color>
+
+    <color name="colorInputBackground">#FFFFFF</color>
+
 </resources>
