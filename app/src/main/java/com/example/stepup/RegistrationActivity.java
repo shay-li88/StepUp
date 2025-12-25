@@ -19,48 +19,36 @@ import com.example.stepup.utils.RegistrationManager;
 public class RegistrationActivity extends AppCompatActivity {
     protected EditText emailEditText;
     protected EditText passwordEditText;
+    protected EditText nicknameEditText;
     private static final String TAG = "RegistrationActivity";
-    private void registerButtonClick() {
-        Log.d(TAG, "Register button clicked");
-
-        RegistrationManager registrationManager = new RegistrationManager(RegistrationActivity.this);
-        registrationManager.startRegistration(
-                emailEditText.getText().toString(),
-                passwordEditText.getText().toString(),
-                new RegistrationManager.OnResultCallback(){
-                    @Override
-                    public void onResult(boolean success, String message) {
-                        if (success) {
-                            Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                        else {
-                            Toast.makeText(RegistrationActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-        Button registerButton = findViewById(R.id.btn_register);
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registerButtonClick();
-            }
-        });
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
+
+        // 1. אתחול השדות - חובה לקשר ל-ID מה-XML
+        emailEditText = findViewById(R.id.et_email); // וודא שה-ID תואם ל-XML שלך
+        passwordEditText = findViewById(R.id.et_password);
+        Button registerButton = findViewById(R.id.btn_register);
+
+        // 2. הגדרת המאזין כבר ברגע יצירת המסך
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //registerButtonClick();
+            }
+        });
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
     }
+
+
+
 
 }

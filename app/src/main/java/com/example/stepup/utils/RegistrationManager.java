@@ -17,7 +17,7 @@ public class RegistrationManager {
     private int registrationPhase;
     File imageFile;
 
-
+    String userId;
 
     String email;
     String password;
