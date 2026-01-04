@@ -1,81 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context="RegistrationActivity">
+    android:background="@color/white"
+    tools:context=".RegistrationActivity">
 
-  <EditText
-      android:id="@+id/et_email"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:hint="Email"
-      android:layout_marginBottom="8dp"/>
-
-  <EditText
-      android:id="@+id/et_password"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:hint="Password"
-      android:layout_marginBottom="8dp"/>
-
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:gravity="center_vertical"
-      android:layout_marginBottom="16dp">
-
-
-
-  </LinearLayout>
-
-  <EditText
-      android:id="@+id/et_nickname"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:hint="Nickname"
-      android:inputType="textPersonName"
-      android:layout_marginBottom="8dp"/>
-
-  <EditText
-      android:id="@+id/et_age"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:hint="Age"
-      android:inputType="number"
-      android:layout_marginBottom="16dp"/>
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <ImageView
-            android:id="@+id/iv_profile_picture"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@android:drawable/ic_menu_camera"
-            android:layout_marginEnd="16dp"/>
-
-        <Button
-            android:id="@+id/btn_choose_picture"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose Picture"
-            android:padding="8dp"/>
+            android:orientation="vertical"
+            android:padding="30dp">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create Account"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorDarkText"
+                android:layout_gravity="center"
+                android:layout_marginBottom="30dp"/>
 
-  <Button
-      android:id="@+id/btn_register"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:text="Registration"
-      android:backgroundTint="#EB7A9FFF" />
-</LinearLayout>
+            <RelativeLayout
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="30dp">
+
+                <ImageView
+                    android:id="@+id/iv_profile_picture"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/rounded_profile_bg"
+                    android:src="@drawable/default_profile_icon"
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true"
+                    android:padding="2dp" />
+
+            </RelativeLayout>
+
+            <EditText
+                android:id="@+id/et_nickname"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Nickname"
+                android:background="@drawable/rounded_edittext_bg"
+                android:drawableStart="@drawable/ic_person"
+                android:drawablePadding="10dp"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
+                android:id="@+id/et_email"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:drawableStart="@drawable/ic_email"
+                android:drawablePadding="10dp"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
+                android:padding="12dp" />
+
+            <ImageButton
+                android:id="@+id/btn_choose_picture"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/rounded_pink_circle"
+                android:elevation="4dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_camera_white" />
+
+            <EditText
+                android:id="@+id/et_password"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:background="@drawable/rounded_edittext_bg"
+                android:drawableStart="@drawable/ic_lock"
+                android:drawablePadding="10dp"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
+                android:id="@+id/et_age"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Age"
+                android:inputType="number"
+                android:background="@drawable/rounded_edittext_bg"
+                android:drawableStart="@drawable/ic_calendar"
+                android:drawablePadding="10dp"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <Spinner
+                android:id="@+id/et_spinnerLevel"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:layout_marginBottom="32dp"/>
+
+            <Button
+                android:id="@+id/btn_register"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Sign Up"
+                android:backgroundTint="@color/colorPrimaryPink"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/link_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Already have an account? Log In"
+                android:textColor="@color/colorPrimaryPink"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

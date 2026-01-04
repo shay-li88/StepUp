@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 
-    <color name="colorPrimaryPink">#F5A9B8</color>
+    <color name="colorPrimaryPink">#F58FA5</color> <color name="colorLightPink">#FFF0F5</color>  <color name="colorDarkText">#333333</color>    <color name="colorHintText">#999999</color>
 
-    <color name="colorLightPink">#FDEFF2</color>
-
-    <color name="colorDarkText">#333333</color>
-
-    <color name="colorInputBackground">#FFFFFF</color>
-
+        <color name="loginBgPink">#FFDDE6</color> <color name="loginAccentPink">#F4A4BD</color> <color name="loginDarkText">#3E3438</color> <color name="loginHintText">#A89FA3</color>
 </resources>
