@@ -28,23 +28,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
-        emailEditText = findViewById(R.id.et_email); // וודא שה-ID תואם ל-XML שלך
-        passwordEditText = findViewById(R.id.et_password);
-
+        Button registerButton = findViewById(R.id.btn_register);
+        auth = FirebaseAuth.getInstance();
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        auth = FirebaseAuth.getInstance();
-        TextView registerLinkTextView = findViewById(R.id.tvSignup);
+        if (auth.getCurrentUser() != null) {
+            Log.i("LoginActivity", "User already signed in, navigating to FeedActivity");
+            Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        TextView tvRegister = findViewById(R.id.tvSignup);
 
-
-        registerLinkTextView.setOnClickListener(new View.OnClickListener() {
+        tvRegister.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                performLogin();
-
+            public void onClick(View v) {
+                // יצירת אינטנט למעבר מ-LoginActivity ל-RegisterActivity
+                Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
+                startActivity(intent);
             }
         });
 
