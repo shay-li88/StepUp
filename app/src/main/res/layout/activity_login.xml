@@ -55,51 +55,51 @@
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="40dp"
         android:background="@drawable/rounded_input"
-        android:hint="Email"
-        android:textColorHint="@color/loginHintText"
-        android:inputType="textEmailAddress"
-        android:padding="16dp"
         android:drawableStartCompat="@drawable/ic_email"
         android:drawablePadding="12dp"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:padding="16dp"
+        android:textColorHint="@color/loginHintText"
         app:drawableTint="@color/loginAccentPink"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcome"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvWelcome" />
 
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="16dp"
         android:background="@drawable/rounded_input_bg"
-        android:hint="Password"
-        android:textColorHint="@color/loginHintText"
-        android:inputType="textPassword"
-        android:padding="16dp"
         android:drawableStartCompat="@drawable/ic_lock"
         android:drawablePadding="12dp"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:padding="16dp"
+        android:textColorHint="@color/loginHintText"
         app:drawableTint="@color/loginAccentPink"
-        app:layout_constraintTop_toBottomOf="@id/etEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        tools:layout_editor_absoluteY="286dp" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnLogin"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="472dp"
         android:background="@drawable/rounded_button_bg"
+        android:padding="12dp"
         android:text="Log In"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
-        android:padding="12dp"
-        android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etPassword" />
 
     <TextView
         android:id="@+id/tvSignup"
@@ -121,19 +121,15 @@
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_trophy"
-            android:layout_marginEnd="60dp"
-            app:tint="@color/loginDarkText" />
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_trophy"
+        app:tint="@color/loginDarkText"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_person"
-            android:layout_marginStart="60dp"
-            app:tint="@color/loginDarkText" />
-    </LinearLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
