@@ -2,6 +2,8 @@ package com.example.stepup;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,8 +20,10 @@ public class RegistrationActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
 
+    private static final String TAG = "RegistrationActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: started");
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
@@ -28,44 +32,70 @@ public class RegistrationActivity extends AppCompatActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+
+
+        });
+        emailEditText = findViewById(R.id.etEmail);
+        passwordEditText = findViewById(R.id.etPassword);
+
+        Button registerButton = findViewById(R.id.btn_register);
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                registerButtonClick();
+            }
         });
 
-        // קישור לרכיבים לפי ה-IDs ב-XML שלך
-        emailEditText = findViewById(R.id.etemail);
-        passwordEditText = findViewById(R.id.etPassword);
-        Button registerButton = findViewById(R.id.btn_register);
-        TextView backToLogin = findViewById(R.id.link_login);
 
-        registerButton.setOnClickListener(v -> {
-            String email = emailEditText.getText().toString().trim();
-            String pass = passwordEditText.getText().toString().trim();
-            String name = email; // משתמשים באימייל ככינוי זמני כי אין שדה ניקניימ
+        Log.d(TAG, "onCreate: done");
+    }
+    private void registerButtonClick() {
+        Log.d(TAG, "Register button clicked");
 
-            if (email.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
 
-            // תיקון הקריאה לפי הסדר שה-Manager דורש:
-            // 1. אימייל, 2. סיסמה, 3. null (במקום קובץ), 4. שם, 5. מספר (0), 6. קולבאק
-            new RegistrationManager(this).startRegistration(
-                    email,
-                    pass,
-                    null,   // הפרמטר השלישי חייב להיות File (או null אם אין תמונה)
-                    name,   // הפרמטר הרביעי הוא ה-String של השם
-                    0,      // הפרמטר החמישי הוא ה-int
-                    (success, message) -> { // הפרמטר השישי הוא ה-Callback
+        // 1. בדיקה אם השדות ריקים
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(RegistrationActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            return; // עוצר כאן ולא ממשיך לרישום
+        }
+
+        // 2. בדיקה אם האימייל תקין (מכיל @ ונקודה במבנה נכון)
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            // אם האימייל לא תקין
+            emailEditText.setError("Invalid email format (missing @ or .)");
+            Toast.makeText(RegistrationActivity.this, "Registration failed: Invalid email", Toast.LENGTH_SHORT).show();
+            return; // עוצר כאן ונשאר בדף הרישום
+        }
+
+        // 3. בדיקת אורך סיסמה (בונוס - כדאי שתהיה לפחות 6 תווים)
+        if (password.length() < 6) {
+            passwordEditText.setError("Password must be at least 6 characters");
+            return;
+        }
+
+        // רק אם הכל תקין - עוברים לרישום האמיתי
+        RegistrationManager registrationManager = new RegistrationManager(RegistrationActivity.this);
+        registrationManager.startRegistration(
+                email,
+                password,
+                null,
+                email,
+                0,
+                new RegistrationManager.OnResultCallback() {
+                    @Override
+                    public void onResult(boolean success, String message) {
                         if (success) {
-                            Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(this, LoginActivity.class));
+                            Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+                            startActivity(intent);
                             finish();
                         } else {
-                            Toast.makeText(this, "Error: " + message, Toast.LENGTH_LONG).show();
+                            Toast.makeText(RegistrationActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
                         }
-                    });
-        });
-
-        // חזרה למסך התחברות
-        backToLogin.setOnClickListener(v -> finish());
+                    }
+                });
     }
+
 }

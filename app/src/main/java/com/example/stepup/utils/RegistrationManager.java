@@ -4,7 +4,17 @@ import android.app.Activity;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegistrationManager {
     private static final String TAG = "RegistrationManager";
@@ -15,6 +25,8 @@ public class RegistrationManager {
     private static final int REGISTRATION_PHASE_UPLOAD_DATA = 3;
     private static final int REGISTRATION_PHASE_DONE = 4;
     private int registrationPhase;
+    FirebaseAuth auth;
+
     File imageFile;
 
     String userId;
@@ -31,6 +43,7 @@ public class RegistrationManager {
     public RegistrationManager(Activity activity) {
         Log.d(TAG, "RegistrationManager: started");
         this.activity = activity;
+        auth = FirebaseAuth.getInstance();
 
 
         registrationPhase = REGISTRATION_PHASE_VALIDATE_USER_INFO;
@@ -70,7 +83,14 @@ public class RegistrationManager {
     {
         Log.e(TAG, "phaseFailed: registration failed: message: " + message);
         registrationPhase = REGISTRATION_PHASE_VALIDATE_USER_INFO;
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            user.delete();
+        }
+        auth.signOut();
         onResultCallback.onResult(false, message);
+
+
     }
 
     private void executeNextPhase()
@@ -118,7 +138,30 @@ public class RegistrationManager {
 
     private void createUser()
     {
-        phaseDone();
+        Log.d(TAG, "createUser: Creating user with Firebase Auth");
+
+// Create user with email and password
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = auth.getCurrentUser();
+                            if (user != null) {
+                                userId = user.getUid();
+                                Log.i(TAG, "Firebase Auth registration successful. UID: " + userId);
+                                phaseDone();
+                            } else {
+                                Log.e(TAG, "Firebase Auth registration succeeded but user is null");
+                                phaseFailed("user is null");
+                            }
+                        } else {
+                            Log.e(TAG, "Firebase Auth registration failed", task.getException());
+                            phaseFailed(task.getException() != null ? task.getException().getMessage() : "Unknown error");
+                        }
+                    }
+                });
+
     }
 
     private void uploadProfilePictureToSupabase() {
@@ -147,9 +190,7 @@ public class RegistrationManager {
     }
 
 
-    private void saveUserToFirestore() {
-        phaseDone();
-    }
+    private void saveUserToFirestore() {phaseDone();}
 
 }
 
