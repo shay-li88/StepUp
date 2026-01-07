@@ -30,7 +30,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         emailEditText = findViewById(R.id.et_email); // וודא שה-ID תואם ל-XML שלך
         passwordEditText = findViewById(R.id.et_password);
-        Button registerButton = findViewById(R.id.btn_login);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -38,7 +37,7 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
         auth = FirebaseAuth.getInstance();
-        TextView registerLinkTextView = findViewById(R.id.link_register);
+        TextView registerLinkTextView = findViewById(R.id.tvSignup);
 
 
         registerLinkTextView.setOnClickListener(new View.OnClickListener() {
