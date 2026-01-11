@@ -19,7 +19,7 @@ public class RegistrationActivity extends AppCompatActivity {
     // ב-XML ששלחת אין שדה Nickname, לכן השארתי רק אימייל וסיסמה
     private EditText emailEditText;
     private EditText passwordEditText;
-
+    private EditText usernameEditText;
     private static final String TAG = "RegistrationActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +35,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
         });
+        usernameEditText = findViewById(R.id.etUsername);
         emailEditText = findViewById(R.id.etEmail);
         passwordEditText = findViewById(R.id.etPassword);
 
@@ -51,7 +52,7 @@ public class RegistrationActivity extends AppCompatActivity {
     }
     private void registerButtonClick() {
         Log.d(TAG, "Register button clicked");
-
+        String username = usernameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
@@ -81,18 +82,26 @@ public class RegistrationActivity extends AppCompatActivity {
                 email,
                 password,
                 null,
-                email,
+                username,
                 0,
                 new RegistrationManager.OnResultCallback() {
                     @Override
                     public void onResult(boolean success, String message) {
                         if (success) {
-                            Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(RegistrationActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
+                            // עדכון השם ב-Firebase Auth כדי שנוכל למשוך אותו בכל מקום באפליקציה
+                            com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+                            if (user != null) {
+                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates = new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                        .setDisplayName(username) // ה-username מה-EditText
+                                        .build();
+
+                                user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
+                                    Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                });
+                            }
                         }
                     }
                 });

@@ -74,7 +74,7 @@
         android:textColorHint="@color/loginHintText" />
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnLogin"
+        android:id="@+id/btn_login"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginHorizontal="32dp"

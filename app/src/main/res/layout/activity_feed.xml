@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 android:layout_marginBottom="15dp"
-                android:text="Recent workouts"
+                android:text="choose your workout for today!"
                 android:textColor="#1A237E"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -181,18 +181,18 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_posts"
-                app:tint="@color/nav_inactive" />
+                android:layout_width="70dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_posts" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
                 android:text="Posts"
                 android:textColor="@color/nav_active"
                 android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
