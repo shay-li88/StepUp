@@ -6,4 +6,8 @@
     <color name="colorPrimaryPink">#F58FA5</color> <color name="colorLightPink">#FFF0F5</color>  <color name="colorDarkText">#333333</color>    <color name="colorHintText">#999999</color>
 
         <color name="loginBgPink">#FFDDE6</color> <color name="loginAccentPink">#F4A4BD</color> <color name="loginDarkText">#3E3438</color> <color name="loginHintText">#A89FA3</color>
+    <color name="nav_active">#1A237E</color>
+    <color name="nav_inactive">#212121</color>
+    <color name="nav_border">#E0E0E0</color>
 </resources>
+

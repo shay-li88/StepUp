@@ -119,53 +119,62 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="75dp"
         android:background="#FFFFFF"
-        android:elevation="10dp"
+        android:orientation="horizontal"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:elevation="15dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <LinearLayout
-            android:id="@+id/nav_workouts"
+            android:id="@+id/btnworkouts"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
-                android:layout_width="28dp"
+                android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_weightlifter"
-                app:tint="#1A237E" />
+                android:src="@drawable/ic_workouts" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Workouts"
+                android:textColor="@color/nav_active"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#1A237E" />
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_challenges"
+            android:id="@+id/btnchallenges"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
+
             <ImageView
-                android:layout_width="28dp"
+                android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_trophy" />
+                android:src="@drawable/ic_challenges" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Challenges"
-                android:textSize="12sp" />
+                android:textColor="@color/nav_active"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_posts"
+            android:id="@+id/btnposts"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -174,30 +183,37 @@
             <ImageView
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_posts" />
+                android:src="@drawable/ic_posts"
+                app:tint="@color/nav_inactive" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Posts"
-                android:textSize="12sp" />
+                android:textColor="@color/nav_active"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_profile"
+            android:id="@+id/btnprofile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="28dp"
+                android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_person" />
+                android:src="@drawable/ic_profile" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Profile"
-                android:textSize="12sp" />
+                android:textColor="@color/nav_active"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
     </LinearLayout>
