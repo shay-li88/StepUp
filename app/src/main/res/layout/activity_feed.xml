@@ -138,7 +138,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_workouts" />
+                android:src="@drawable/ic_workouts_ill" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -161,7 +161,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_challenges" />
+                android:src="@drawable/ic_challenges_ill" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,7 +183,7 @@
             <ImageView
                 android:layout_width="70dp"
                 android:layout_height="40dp"
-                android:src="@drawable/ic_posts" />
+                android:src="@drawable/ic_posts_ill" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -205,7 +205,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_profile" />
+                android:src="@drawable/ic_profile_ill" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
