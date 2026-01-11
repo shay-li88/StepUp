@@ -23,35 +23,31 @@ public class LoginActivity extends AppCompatActivity {
     FirebaseAuth auth;
     protected EditText emailEditText;
     protected EditText passwordEditText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
-        Button registerButton = findViewById(R.id.btn_register);
+
         auth = FirebaseAuth.getInstance();
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        if (auth.getCurrentUser() != null) {
-            Log.i("LoginActivity", "User already signed in, navigating to FeedActivity");
-            Intent intent = new Intent(LoginActivity.this, FeedActivity.class);
-            startActivity(intent);
-            finish();
-        }
+        emailEditText = findViewById(R.id.etEmail);
+        passwordEditText = findViewById(R.id.etPassword);
+
+        // קישור כפתור התחברות
+        Button loginButton = findViewById(R.id.btn_login);
+        loginButton.setOnClickListener(v -> performLogin());
+
+        // מעבר להרשמה (קיים אצלך)
         TextView tvRegister = findViewById(R.id.tvSignup);
-
-        tvRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // יצירת אינטנט למעבר מ-LoginActivity ל-RegisterActivity
-                Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
-                startActivity(intent);
-            }
+        tvRegister.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, RegistrationActivity.class));
         });
 
+        // כניסה אוטומטית אם כבר מחובר
+        if (auth.getCurrentUser() != null) {
+            startFeedActivity(false);
+        }
     }
     private void performLogin() {
         String email = emailEditText.getText().toString().trim();

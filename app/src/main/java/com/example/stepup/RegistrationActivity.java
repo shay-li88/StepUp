@@ -51,58 +51,37 @@ public class RegistrationActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: done");
     }
     private void registerButtonClick() {
-        Log.d(TAG, "Register button clicked");
         String username = usernameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        // 1. בדיקה אם השדות ריקים
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(RegistrationActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            return; // עוצר כאן ולא ממשיך לרישום
-        }
-
-        // 2. בדיקה אם האימייל תקין (מכיל @ ונקודה במבנה נכון)
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            // אם האימייל לא תקין
-            emailEditText.setError("Invalid email format (missing @ or .)");
-            Toast.makeText(RegistrationActivity.this, "Registration failed: Invalid email", Toast.LENGTH_SHORT).show();
-            return; // עוצר כאן ונשאר בדף הרישום
-        }
-
-        // 3. בדיקת אורך סיסמה (בונוס - כדאי שתהיה לפחות 6 תווים)
-        if (password.length() < 6) {
-            passwordEditText.setError("Password must be at least 6 characters");
+        // בדיקות תקינות (כבר קיימות אצלך)
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // רק אם הכל תקין - עוברים לרישום האמיתי
-        RegistrationManager registrationManager = new RegistrationManager(RegistrationActivity.this);
+        if (password.length() < 6) {
+            passwordEditText.setError("Password too short");
+            return;
+        }
+
+        RegistrationManager registrationManager = new RegistrationManager(this);
         registrationManager.startRegistration(
                 email,
                 password,
-                null,
+                null, // קובץ תמונה (אם יש)
                 username,
                 0,
-                new RegistrationManager.OnResultCallback() {
-                    @Override
-                    public void onResult(boolean success, String message) {
-                        if (success) {
-                            // עדכון השם ב-Firebase Auth כדי שנוכל למשוך אותו בכל מקום באפליקציה
-                            com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
-                            if (user != null) {
-                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates = new com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                                        .setDisplayName(username) // ה-username מה-EditText
-                                        .build();
-
-                                user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
-                                    Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                });
-                            }
-                        }
+                (success, message) -> {
+                    if (success) {
+                        Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+                        // מעבר למסך לוגין
+                        Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish(); // סוגר את מסך ההרשמה
+                    } else {
+                        Toast.makeText(RegistrationActivity.this, message, Toast.LENGTH_LONG).show();
                     }
                 });
     }

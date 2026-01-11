@@ -136,11 +136,10 @@ public class RegistrationManager {
         phaseDone();
     }
 
-    private void createUser()
-    {
+    private void createUser() {
         Log.d(TAG, "createUser: Creating user with Firebase Auth");
 
-// Create user with email and password
+        // יצירת משתמש עם אימייל וסיסמה
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -150,7 +149,26 @@ public class RegistrationManager {
                             if (user != null) {
                                 userId = user.getUid();
                                 Log.i(TAG, "Firebase Auth registration successful. UID: " + userId);
-                                phaseDone();
+
+                                // עדכון ה-Nickname (Username) בפרופיל של המשתמש ב-Firebase
+                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates =
+                                        new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                                .setDisplayName(nickname) // משתמש במשתנה nickname שהתקבל ב-startRegistration
+                                                .build();
+
+                                user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> profileTask) {
+                                        if (profileTask.isSuccessful()) {
+                                            Log.i(TAG, "User profile updated with nickname: " + nickname);
+                                        } else {
+                                            Log.w(TAG, "User profile update failed", profileTask.getException());
+                                        }
+                                        // ממשיך לשלב הבא (תמונה או דאטה) בכל מקרה כדי לא לתקוע את הרישום
+                                        phaseDone();
+                                    }
+                                });
+
                             } else {
                                 Log.e(TAG, "Firebase Auth registration succeeded but user is null");
                                 phaseFailed("user is null");
@@ -161,7 +179,6 @@ public class RegistrationManager {
                         }
                     }
                 });
-
     }
 
     private void uploadProfilePictureToSupabase() {
