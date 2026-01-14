@@ -14,6 +14,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StepUp">
         <activity
+            android:name=".PostsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WorkoutsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".utils.PilatesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CatdioActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StrengthActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RunningActivity"
+            android:exported="false" />
+        <activity
             android:name=".ProfileActivity"
             android:exported="false" />
         <activity
