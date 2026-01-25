@@ -6,6 +6,10 @@
     android:background="#E3F2FD"
     android:orientation="vertical">
 
+
+
+
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -138,7 +142,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_workouts_ill" />
+                android:src="@drawable/ic_workouts" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -161,7 +165,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_challenges_ill" />
+                android:src="@drawable/ic_challenges" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -171,6 +175,28 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/btnhome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_home" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Home"
+                android:textColor="@color/nav_active"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -183,7 +209,7 @@
             <ImageView
                 android:layout_width="70dp"
                 android:layout_height="40dp"
-                android:src="@drawable/ic_posts_ill" />
+                android:src="@drawable/ic_posts" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -205,7 +231,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="28dp"
-                android:src="@drawable/ic_profile_ill" />
+                android:src="@drawable/ic_profile" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -13,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -24,7 +25,7 @@ public class FeedActivity extends AppCompatActivity {
     private TextView tvHelloUser, tvStreak, tvPoints;
 
     // כפתורי ניווט תחתון
-    private LinearLayout btnWorkouts, btnChallenges, btnPosts, btnProfile;
+    private LinearLayout btnWorkouts, btnChallenges, btnPosts, btnProfile, btnHome;
 
     // כפתורי אימונים בפיד
     private LinearLayout btnRunning, btnStrength, btnCardio, btnPilates;
@@ -34,17 +35,30 @@ public class FeedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_feed);
-
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_messages);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_); // מסמן את דף ההודעות
 
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_messages) return true;
+
+            if (id == R.id.nav_home) startActivity(new Intent(this, HomeActivity.class));
+            else if (id == R.id.nav_community) startActivity(new Intent(this, CommunityActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+
+            overridePendingTransition(0, 0);
+            return true;
+        });
         initViews();       // קישור כל ה-IDs
         displayUserData(); // הצגת שם המשתמש מ-Firebase
         setupListeners();  // הגדרת לחיצות
+
     }
 
     private void initViews() {
@@ -58,6 +72,7 @@ public class FeedActivity extends AppCompatActivity {
         btnChallenges = findViewById(R.id.btnchallenges);
         btnPosts = findViewById(R.id.btnposts);
         btnProfile = findViewById(R.id.btnprofile);
+        btnHome = findViewById(R.id.btnhome);
 
         // כפתורי אימון
         btnRunning = findViewById(R.id.btnRunning);
