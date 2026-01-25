@@ -10,6 +10,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 public class ChallengesActivity extends AppCompatActivity {
 
     @Override
@@ -22,28 +24,25 @@ public class ChallengesActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        // 1. חיבור הרכיבים מה-XML לקוד ה-Java
-        LinearLayout btnWorkouts = findViewById(R.id.btnworkouts);
-        LinearLayout btnChallenges = findViewById(R.id.btnchallenges);
-        LinearLayout btnPosts = findViewById(R.id.btnposts);
-        LinearLayout btnProfile = findViewById(R.id.btnprofile);
 
-// 2. הגדרת לחיצה למעבר לאתגרים
-        btnWorkouts.setOnClickListener(v -> {
-            startActivity(new Intent(ChallengesActivity.this, WorkoutsActivity.class));
-            overridePendingTransition(0, 0); // מבטל אנימציה למעבר חלק
-        });
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_challenges);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_challenges); // מסמן את דף ההודעות
 
-// 3. הגדרת לחיצה למעבר לפוסטים
-        btnPosts.setOnClickListener(v -> {
-            startActivity(new Intent(ChallengesActivity.this, PostsActivity.class));
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_challenges) return true;
+
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
             overridePendingTransition(0, 0);
+            return true;
         });
 
-// 4. הגדרת לחיצה למעבר לפרופיל
-        btnProfile.setOnClickListener(v -> {
-            startActivity(new Intent(ChallengesActivity.this, ProfileActivity.class));
-            overridePendingTransition(0, 0);
-        });
+
+
+
     }
 }

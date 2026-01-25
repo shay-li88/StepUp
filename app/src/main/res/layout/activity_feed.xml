@@ -121,126 +121,21 @@
         </LinearLayout>
     </ScrollView>
 
-    <LinearLayout
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_feed"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:background="#FFFFFF"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:elevation="15dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
+        android:layout_height="wrap_content"
+        app:itemIconTint="#1A237E"
+        app:itemTextColor="#1A237E"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconSize="40dp"
+        app:itemPaddingTop="8dp"
+        app:itemPaddingBottom="8dp"
+        app:itemActiveIndicatorStyle="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@drawable/bottom_nav"
+        app:backgroundTint="@null"/>
 
-        <LinearLayout
-            android:id="@+id/btnworkouts"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_workouts" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Workouts"
-                android:textColor="@color/nav_active"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnchallenges"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_challenges" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Challenges"
-                android:textColor="@color/nav_active"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/btnhome"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_home" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:text="Home"
-                android:textColor="@color/nav_active"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnposts"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_posts" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:text="Posts"
-                android:textColor="@color/nav_active"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnprofile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_profile" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textColor="@color/nav_active"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-
-    </LinearLayout>
 </LinearLayout>

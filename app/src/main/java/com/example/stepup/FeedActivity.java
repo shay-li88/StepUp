@@ -40,18 +40,18 @@ public class FeedActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_messages);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
         bottomNav.setItemIconTintList(null);
-        bottomNav.setSelectedItemId(R.id.nav_); // מסמן את דף ההודעות
+        bottomNav.setSelectedItemId(R.id.nav_home); // מסמן את דף ההודעות
 
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_messages) return true;
+            if (id == R.id.nav_home) return true;
 
-            if (id == R.id.nav_home) startActivity(new Intent(this, HomeActivity.class));
-            else if (id == R.id.nav_community) startActivity(new Intent(this, CommunityActivity.class));
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
-
+            else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
             overridePendingTransition(0, 0);
             return true;
         });
@@ -67,12 +67,7 @@ public class FeedActivity extends AppCompatActivity {
         tvStreak = findViewById(R.id.tvStreak);
         tvPoints = findViewById(R.id.tvPoints);
 
-        // תפריט תחתון
-        btnWorkouts = findViewById(R.id.btnworkouts);
-        btnChallenges = findViewById(R.id.btnchallenges);
-        btnPosts = findViewById(R.id.btnposts);
-        btnProfile = findViewById(R.id.btnprofile);
-        btnHome = findViewById(R.id.btnhome);
+
 
         // כפתורי אימון
         btnRunning = findViewById(R.id.btnRunning);
@@ -99,52 +94,12 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // --- ניווט תחתון ---
-        btnWorkouts.setOnClickListener(v -> {
-            // אנחנו כבר בפיד האימונים
-            Toast.makeText(this, "You are already in Workouts", Toast.LENGTH_SHORT).show();
-        });
 
-        btnChallenges.setOnClickListener(v -> {
-            Toast.makeText(this, "Challenges coming soon!", Toast.LENGTH_SHORT).show();
-            // Intent intent = new Intent(this, ChallengesActivity.class);
-            // startActivity(intent);
-        });
-
-        btnPosts.setOnClickListener(v -> {
-            Toast.makeText(this, "Posts screen clicked", Toast.LENGTH_SHORT).show();
-        });
-
-        btnProfile.setOnClickListener(v -> {
-            Toast.makeText(this, "Profile screen clicked", Toast.LENGTH_SHORT).show();
-            // Intent intent = new Intent(this, ProfileActivity.class);
-            // startActivity(intent);
-        });
-
-        // --- כפתורי אימונים ---
-        btnRunning.setOnClickListener(v -> {
-            Toast.makeText(this, "Starting Running workout...", Toast.LENGTH_SHORT).show();
-        });
-
-        btnStrength.setOnClickListener(v -> {
-            Toast.makeText(this, "Starting Strength workout...", Toast.LENGTH_SHORT).show();
-        });
-
-        btnCardio.setOnClickListener(v -> {
-            Toast.makeText(this, "Starting Cardio workout...", Toast.LENGTH_SHORT).show();
-        });
-
-        btnPilates.setOnClickListener(v -> {
-            Toast.makeText(this, "Starting Pilates workout...", Toast.LENGTH_SHORT).show();
-        });
-
-        // בונוס: לחיצה ארוכה על השם מאפשרת להתנתק (Sign Out)
         tvHelloUser.setOnLongClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(FeedActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            return true;
-        });
-    }
-}
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(FeedActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+        return true;
+    });
+        }}
