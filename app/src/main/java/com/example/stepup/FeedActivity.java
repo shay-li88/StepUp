@@ -94,6 +94,12 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+// בתוך setupListeners()
+        btnRunning.setOnClickListener(v -> {
+            Intent intent = new Intent(FeedActivity.this, RunningActivity.class);
+            startActivity(intent);
+            // את יכולה להוסיף אנימציה אם תרצי, או להשאיר רגיל
+        });
 
         tvHelloUser.setOnLongClickListener(v -> {
         FirebaseAuth.getInstance().signOut();
