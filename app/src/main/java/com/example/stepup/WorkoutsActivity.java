@@ -2,6 +2,7 @@ package com.example.stepup;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,5 +39,21 @@ public class WorkoutsActivity extends AppCompatActivity {
             overridePendingTransition(0, 0);
             return true;
         });
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String type = extras.getString("type");
+            String difficulty = extras.getString("difficulty");
+            int time = extras.getInt("time");
+            int distance = extras.getInt("distance");
+
+            // 2. הצגת הנתונים (נניח שיש לך TextView בשם postDetails)
+            TextView postDetails = findViewById(R.id.postDetails);
+            String summary = "New Workout: " + type + "\n" +
+                    "Level: " + difficulty + "\n" +
+                    "Duration: " + time + " min\n" +
+                    "Distance: " + distance + " km";
+
+            postDetails.setText(summary);
+        }
     }
 }
