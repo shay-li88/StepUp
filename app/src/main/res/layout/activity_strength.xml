@@ -1,10 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".StrengthActivity">
+    android:background="#E7C7EB"> <TextView
+    android:id="@+id/tvTitle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="🏋️ Strength"
+    android:textColor="#3F1B6A"
+    android:textSize="30sp"
+    android:textStyle="bold"
+    android:layout_marginTop="40dp"
+    android:layout_marginStart="20dp"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"/>
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Build your strength"
+                android:textColor="#4A148C"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/strength_bar"
+                android:padding="2dp">
+                <Button android:id="@+id/btnLight"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Light"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textAllCaps="false"/>
+
+                <Button
+                    android:id="@+id/btnModerate"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Moderate"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textAllCaps="false"/>
+                <Button android:id="@+id/btnHeavy"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Heavy"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textAllCaps="false"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time (minutes)"
+                android:layout_marginTop="20dp"
+                android:textStyle="bold"
+                android:textColor="#4A148C"/>
+            <NumberPicker
+                android:id="@+id/strengthTimePicker"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Workout Type"
+                android:layout_marginTop="20dp"
+                android:textStyle="bold"
+                android:textColor="#4A148C"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/strength_bar"
+                android:padding="2dp">
+                <Button
+                    android:id="@+id/btnUpper"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Upper Body"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textSize="12sp"
+                    android:textAllCaps="false"/>
+                <Button
+                    android:id="@+id/btnLower"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Lower Body"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textSize="12sp"
+                    android:textAllCaps="false"/>
+                <Button
+                    android:id="@+id/btnFull"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Full Body"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A148C"
+                    android:textSize="12sp"
+                    android:textAllCaps="false"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Details"
+                android:textStyle="bold"
+                android:layout_marginTop="20dp"
+                android:textColor="#4A148C"/>
+
+            <EditText
+                android:id="@+id/etStrengthNotes"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="@drawable/notes"
+                android:gravity="top"
+                android:padding="10dp"
+                android:textColor="#4A148C"
+                android:hint="How did you feel?"
+                android:textSize="14sp"/>
+
+            <Button
+                android:id="@+id/btnGoStrength"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="20dp"
+                android:text="Go Activity"
+                android:backgroundTint="#A17CE4"
+                android:textColor="#FFFFFF"
+                app:cornerRadius="20dp"
+                android:textAllCaps="false"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

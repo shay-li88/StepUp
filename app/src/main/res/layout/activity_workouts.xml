@@ -5,40 +5,39 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F8F9FA"
     tools:context=".WorkoutsActivity">
 
-
-
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_workouts"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:itemIconTint="#1A237E"
-        app:itemTextColor="#1A237E"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconSize="48dp"
-        app:itemPaddingTop="8dp"
-        app:itemPaddingBottom="8dp"
-        app:itemActiveIndicatorStyle="@null"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:background="@drawable/bottom_nav"
-        app:backgroundTint="@null"/>
+        android:text="My Workouts"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#1A237E"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
+        android:id="@+id/workoutCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="15dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
         app:cardElevation="4dp"
-        android:layout_margin="16dp">
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
             <TextView
                 android:id="@+id/postDetails"
@@ -46,29 +45,41 @@
                 android:layout_height="wrap_content"
                 android:text="No workouts yet"
                 android:textSize="18sp"
-                android:textColor="#333333" />
-
-        </LinearLayout>
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#E8F5E9"
-            android:orientation="vertical">
-
-            <TextView
+                android:textColor="#333333"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etAddDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Running"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:padding="16dp"
-                android:textColor="#2D6A4F"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvWorkouts"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"/>
+                android:hint="Any notes to improve for next time?"
+                android:inputType="textMultiLine" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvWorkouts"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/workoutCard"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_workouts"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_workouts"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bottom_nav"
+        app:backgroundTint="@null"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="#1A237E"
+        app:itemTextColor="#1A237E"
+        app:itemIconSize="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

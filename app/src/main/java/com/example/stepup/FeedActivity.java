@@ -1,5 +1,6 @@
 package com.example.stepup;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -99,6 +100,18 @@ public class FeedActivity extends AppCompatActivity {
             Intent intent = new Intent(FeedActivity.this, RunningActivity.class);
             startActivity(intent);
             // את יכולה להוסיף אנימציה אם תרצי, או להשאיר רגיל
+        });
+        btnStrength.setOnClickListener(v -> {
+            Intent intent = new Intent(FeedActivity.this, StrengthActivity.class);
+            startActivity(intent);
+        });
+        btnCardio.setOnClickListener(v -> {
+            Intent intent = new Intent(FeedActivity.this, CardioActivity.class);
+            startActivity(intent);
+        });
+        btnPilates.setOnClickListener(v -> {
+            Intent intent = new Intent(FeedActivity.this, PilatesActivity.class);
+            startActivity(intent);
         });
 
         tvHelloUser.setOnLongClickListener(v -> {
