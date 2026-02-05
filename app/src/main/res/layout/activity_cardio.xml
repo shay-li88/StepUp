@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FCE4EC"
+    android:background="#EFB0C3"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -91,7 +91,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:text="Time (minutes)"
-                android:textColor="#C2185B"/>
+                android:textColor="#C2185B"
+                android:textStyle="bold"/>
 
             <NumberPicker
                 android:id="@+id/cardioTimePicker"
@@ -125,8 +126,8 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="20dp"
-        android:backgroundTint="#EC407A"
-        android:text="Go Activity"
+        android:backgroundTint="#E0487B"
+        android:text="Save Activity"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
         android:textSize="18sp"

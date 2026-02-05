@@ -176,7 +176,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="20dp"
-                android:text="Go Activity"
+                android:text="Save Activity"
                 android:backgroundTint="#A17CE4"
                 android:textColor="#FFFFFF"
                 app:cornerRadius="20dp"

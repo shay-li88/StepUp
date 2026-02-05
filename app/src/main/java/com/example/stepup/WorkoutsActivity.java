@@ -31,7 +31,7 @@ public class WorkoutsActivity extends AppCompatActivity {
             });
         }
 
-        // 2. חיבור ה-TextView מה-XML (זה ה-ID שמופיע בפוסט הירוק)
+        // 2. חיבור ה-TextView מה-XML
         TextView postDetails = findViewById(R.id.postDetails);
 
         // 3. ניווט תחתון
@@ -52,23 +52,27 @@ public class WorkoutsActivity extends AppCompatActivity {
         }
 
         // 4. קבלת נתונים מהאימון והצגתם
+        // בתוך ה-onCreate של WorkoutsActivity.java
         Bundle extras = getIntent().getExtras();
-        if (extras != null && postDetails != null) {
-            String type = extras.getString("type", "Workout");
-            String difficulty = extras.getString("difficulty", "Medium");
+        if (extras != null) {
+            String type = extras.getString("type", "");
+            String difficulty = extras.getString("difficulty", "");
             int time = extras.getInt("time", 0);
-            int distance = extras.getInt("distance", 0);
+
+            // קבלת ההערות - ודאי שהמפתח זהה למה ששלחת!
+            String notesText = extras.getString("notes", "");
 
             String summary = "New Workout: " + type + "\n" +
                     "Level: " + difficulty + "\n" +
                     "Duration: " + time + " min";
 
-            // מוסיף מרחק רק אם זה ריצה (Running)
-            if (type.equals("Running")) {
-                summary += "\nDistance: " + distance + " km";
+            // אם יש הערות, נוסיף אותן לסוף המחרוזת
+            if (notesText != null && !notesText.isEmpty()) {
+                summary += "\n\nNotes: " + notesText;
             }
 
             postDetails.setText(summary);
+
         }
     }
 }

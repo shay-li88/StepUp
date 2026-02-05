@@ -76,7 +76,7 @@
                 android:layout_height="70dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/white_card_bg"
-                android:backgroundTint="#B2EBF2"
+                android:backgroundTint="#C3F7CC"
                 android:gravity="center_vertical"
                 android:paddingStart="20dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏃 Running" android:textSize="20sp" android:textStyle="bold" android:textColor="#1A237E"/>
@@ -112,7 +112,7 @@
                 android:layout_height="70dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/white_card_bg"
-                android:backgroundTint="#FFF9C4"
+                android:backgroundTint="#B2EBF2"
                 android:gravity="center_vertical"
                 android:paddingStart="20dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🧘 Pilates" android:textSize="20sp" android:textStyle="bold" android:textColor="#1A237E"/>
