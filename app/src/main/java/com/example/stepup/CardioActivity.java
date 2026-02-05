@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.NumberPicker;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,7 @@ public class CardioActivity extends AppCompatActivity {
 
     private Button btnLight, btnModerate, btnHIIT, btnGo;
     private NumberPicker timePicker;
+    private EditText etNotes;
     private String selectedLevel = "Moderate"; // ברירת מחדל כמו בתמונה
 
     @Override
@@ -43,6 +45,7 @@ public class CardioActivity extends AppCompatActivity {
         btnHIIT = findViewById(R.id.btnHIIT);
         btnGo = findViewById(R.id.btnGoCardio);
         timePicker = findViewById(R.id.cardioTimePicker);
+        etNotes = findViewById(R.id.etRunningNotes);
 
         // הגדרת ה-Picker (גלילה)
         if (timePicker != null) {
@@ -67,6 +70,7 @@ public class CardioActivity extends AppCompatActivity {
                 intent.putExtra("type", "Cardio");
                 intent.putExtra("difficulty", selectedLevel);
                 intent.putExtra("time", timePicker.getValue());
+                intent.putExtra("notes", etNotes.getText().toString());
                 startActivity(intent);
             });
         }
