@@ -68,10 +68,10 @@ public class PilatesActivity extends AppCompatActivity {
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
             b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#F57F17"));
+            b.setTextColor(Color.parseColor("#1A4375")); // כחול כהה לטקסט לא נבחר
         }
-        selected.setBackgroundResource(R.drawable.pilates_selected);
-        selected.setTextColor(Color.WHITE);
+        selected.setBackgroundResource(R.drawable.pilates_selected); // הרקע הכחול שבנינו
+        selected.setTextColor(Color.WHITE); // טקסט לבן לכפתור הנבחר
     }
 
     interface OnSelectionListener { void onSelected(Button b); }

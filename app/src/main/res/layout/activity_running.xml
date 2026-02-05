@@ -152,7 +152,7 @@
         android:layout_height="60dp"
         android:layout_marginTop="20dp"
         android:backgroundTint="#40916C"
-        android:text="Save Activity"
+        android:text="Save your Activity"
         android:textAllCaps="false"
         android:textSize="18sp"
         app:cornerRadius="30dp" />

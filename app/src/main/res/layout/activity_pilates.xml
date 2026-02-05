@@ -1,21 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4EC8D"> <TextView
-    android:id="@+id/tvTitle"
+    android:background="#E3F2FD"> <LinearLayout
+    android:id="@+id/titleContainer"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="Pilates"
-    android:textColor="#F57F17"
-    android:textSize="32sp"
-    android:textStyle="bold"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:layout_marginTop="40dp"
     android:layout_marginStart="20dp"
     app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent"/>
+    app:layout_constraintStart_toStartOf="parent">
+
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/ic_pilates" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pilates"
+        android:textColor="#1A4375"
+        android:textSize="32sp"
+        android:textStyle="bold" />
+</LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -23,7 +35,7 @@
         android:layout_margin="20dp"
         app:cardCornerRadius="25dp"
         app:cardElevation="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle">
+        app:layout_constraintTop_toBottomOf="@id/titleContainer">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,132 +43,38 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Find your balance"
-                android:textColor="#F57F17"
-                android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Find your balance" android:textColor="#1A4375" android:textStyle="bold"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/pilates_bar"
-                android:padding="2dp">
-                <Button
-                    android:id="@+id/btnBeginner"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Beginner"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
-                <Button
-                    android:id="@+id/btnIntermediate"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Intermediate"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
-                <Button
-                    android:id="@+id/btnAdvanced"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Advanced"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="45dp"
+                android:layout_marginTop="10dp" android:background="@drawable/pilates_bar" android:padding="2dp">
+                <Button android:id="@+id/btnBeginner" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Beginner" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
+                <Button android:id="@+id/btnIntermediate" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Intermediate" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
+                <Button android:id="@+id/btnAdvanced" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Advanced" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Time (minutes)"
-                android:layout_marginTop="20dp"
-                android:textStyle="bold"
-                android:textColor="#F57F17"/>
-            <NumberPicker
-                android:id="@+id/pilatesTimePicker"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginTop="5dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Time (minutes)" android:textColor="#1A4375" android:layout_marginTop="20dp" android:textStyle="bold"/>
+            <NumberPicker android:id="@+id/pilatesTimePicker" android:layout_width="match_parent" android:layout_height="80dp" android:layout_marginTop="5dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Workout Focus"
-                android:layout_marginTop="20dp"
-                android:textStyle="bold"
-                android:textColor="#F57F17"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Workout Focus" android:textColor="#1A4375" android:layout_marginTop="20dp" android:textStyle="bold"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/pilates_bar"
-                android:padding="2dp">
-                <Button
-                    android:id="@+id/btnCore"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Core"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
-                <Button
-                    android:id="@+id/btnFlexibility"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Flexibility"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
-                <Button
-                    android:id="@+id/btnFullBody"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Full Body"
-                    android:background="@android:color/transparent"
-                    android:textColor="#F57F17"
-                    android:textAllCaps="false"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="45dp"
+                android:layout_marginTop="10dp" android:background="@drawable/pilates_bar" android:padding="2dp">
+                <Button android:id="@+id/btnCore" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Core" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
+                <Button android:id="@+id/btnFlexibility" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Flexibility" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
+                <Button android:id="@+id/btnFullBody" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Full Body" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Add Details"
-                android:layout_marginTop="20dp"
-                android:textStyle="bold"
-                android:textColor="#F57F17"/>
-            <EditText
-                android:id="@+id/etPilatesNotes"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@drawable/notes"
-                android:gravity="top"
-                android:padding="10dp"
-                android:hint="How did you feel?"
-                android:textSize="14sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Add Details" android:textColor="#1A4375" android:layout_marginTop="20dp" android:textStyle="bold"/>
+            <EditText android:id="@+id/etPilatesNotes" android:layout_width="match_parent" android:layout_height="80dp"
+                android:background="@drawable/notes" android:gravity="top" android:padding="10dp" android:hint="How did you feel?" android:textSize="14sp"/>
 
-            <Button
-                android:id="@+id/btnGoPilates"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="20dp"
-                android:text="Save Activity"
-                android:backgroundTint="#FBC02D"
-                android:textColor="#FFFFFF"
-                app:cornerRadius="20dp"
-                android:textAllCaps="false"/>
+            <Button android:id="@+id/btnGoPilates" android:layout_width="match_parent" android:layout_height="55dp"
+                android:layout_marginTop="20dp" android:text="Save your Activity" android:backgroundTint="#74A9D8" android:textColor="#FFFFFF"
+                app:cornerRadius="20dp" android:textAllCaps="false"/>
         </LinearLayout>
-
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
