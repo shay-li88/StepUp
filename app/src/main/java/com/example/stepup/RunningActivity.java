@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.NumberPicker;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -12,6 +13,8 @@ public class RunningActivity extends AppCompatActivity {
     // הוסיפי את btnGo כאן למעלה
     private Button btnEasy, btnMedium, btnIntense, btnGo;
     private NumberPicker timePicker, distancePicker;
+
+    private EditText etNotes;
     private String selectedDifficulty = "Easy";
 
     @Override
@@ -26,6 +29,9 @@ public class RunningActivity extends AppCompatActivity {
         btnGo = findViewById(R.id.btnGoActivity); // זה היה חסר!
         timePicker = findViewById(R.id.timePicker);
         distancePicker = findViewById(R.id.distancePicker);
+
+        etNotes = findViewById(R.id.etRunningNotes);
+
 
         // הגדרת הגלילים
         timePicker.setMinValue(1); timePicker.setMaxValue(120); timePicker.setValue(30);
@@ -44,6 +50,7 @@ public class RunningActivity extends AppCompatActivity {
             intent.putExtra("difficulty", selectedDifficulty);
             intent.putExtra("time", time);
             intent.putExtra("distance", distance);
+            intent.putExtra("notes", etNotes.getText().toString());
 
             startActivity(intent);
         });
