@@ -67,17 +67,17 @@ public class WorkoutsActivity extends AppCompatActivity {
 
             // התאמת צבעים: רקע בהיר וטקסט כהה תואם
             if (type.contains("Strength")) {
-                cardColor = Color.parseColor("#F3E5F5"); // סגול בהיר מאוד (רקע)
+                cardColor = Color.parseColor("#E7C7EB"); // סגול בהיר מאוד (רקע)
                 textColor = Color.parseColor("#4A148C"); // סגול כהה עמוק (טקסט)
             } else if (type.contains("Pilates")) {
                 cardColor = Color.parseColor("#E3F2FD"); // כחול בהיר מאוד (רקע)
                 textColor = Color.parseColor("#1A4375"); // כחול כהה עמוק (טקסט)
             } else if (type.contains("Cardio")) {
-                cardColor = Color.parseColor("#FFEBEE"); // ורוד/אדום בהיר מאוד (רקע)
-                textColor = Color.parseColor("#B71C1C"); // אדום יין כהה (טקסט)
+                cardColor = Color.parseColor("#EFB0C3"); // ורוד/אדום בהיר מאוד (רקע)
+                textColor = Color.parseColor("#C2185B"); // אדום יין כהה (טקסט)
             } else if (type.contains("Running")) {
-                cardColor = Color.parseColor("#D8F3DC"); // ירוק בהיר מאוד (רקע)
-                textColor = Color.parseColor("#1B4332"); // ירוק כהה עמוק (טקסט)
+                cardColor = Color.parseColor("#B3DCB5"); // ירוק בהיר מאוד (רקע)
+                textColor = Color.parseColor("#2D6A4F"); // ירוק כהה עמוק (טקסט)
             } else {
                 cardColor = Color.WHITE;
                 textColor = Color.BLACK;
