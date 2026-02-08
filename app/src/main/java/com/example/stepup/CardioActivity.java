@@ -22,7 +22,7 @@ public class CardioActivity extends AppCompatActivity {
     private Button btnLight, btnModerate, btnHIIT, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = "Moderate"; // ברירת מחדל כמו בתמונה
+    private String selectedLevel = "Light";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,7 @@ public class CardioActivity extends AppCompatActivity {
         btnHIIT = findViewById(R.id.btnHIIT);
         btnGo = findViewById(R.id.btnGoCardio);
         timePicker = findViewById(R.id.cardioTimePicker);
-        etNotes = findViewById(R.id.etRunningNotes);
+        etNotes = findViewById(R.id.etCardioNotes);
 
         // הגדרת ה-Picker (גלילה)
         if (timePicker != null) {
@@ -59,9 +59,7 @@ public class CardioActivity extends AppCompatActivity {
         setupLevelButton(btnModerate);
         setupLevelButton(btnHIIT);
 
-        // הגדרה ראשונית: Moderate נבחר (ורוד כהה עם טקסט לבן)
-        resetButtons();
-        selectButton(btnModerate);
+
 
         // מעבר לדף ה-Workouts ושליחת הנתונים
         if (btnGo != null) {

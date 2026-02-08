@@ -13,7 +13,7 @@ public class PilatesActivity extends AppCompatActivity {
     private Button btnBeginner, btnIntermediate, btnAdvanced, btnCore, btnFlexibility, btnFullBody, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = "Intermediate";
+    private String selectedLevel = "Beginner";
     private String selectedFocus = "Core";
 
     @Override
@@ -42,10 +42,6 @@ public class PilatesActivity extends AppCompatActivity {
         // לוגיקה לבחירת מיקוד
         setupSelection(new Button[]{btnCore, btnFlexibility, btnFullBody}, btn -> selectedFocus = btn.getText().toString());
 
-        // צביעה ראשונית של ברירות המחדל
-        updateButtonUI(btnIntermediate, new Button[]{btnBeginner, btnIntermediate, btnAdvanced});
-        updateButtonUI(btnCore, new Button[]{btnCore, btnFlexibility, btnFullBody});
-
         btnGo.setOnClickListener(v -> {
             Intent intent = new Intent(this, WorkoutsActivity.class);
             intent.putExtra("type", "Pilates - " + selectedFocus);
@@ -54,6 +50,7 @@ public class PilatesActivity extends AppCompatActivity {
             intent.putExtra("notes", etNotes.getText().toString());
             startActivity(intent);
         });
+
     }
 
     private void setupSelection(Button[] group, OnSelectionListener listener) {
@@ -67,11 +64,16 @@ public class PilatesActivity extends AppCompatActivity {
 
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
+            // ביטול ה-Tint של אנדרואיד כדי שנוכל לראות את ה-Drawable שלנו
+            b.setBackgroundTintList(null);
+
+            // מצב לא נבחר: רקע שקוף וטקסט כחול כהה
             b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#1A4375")); // כחול כהה לטקסט לא נבחר
+            b.setTextColor(Color.parseColor("#1A4375"));
         }
-        selected.setBackgroundResource(R.drawable.pilates_selected); // הרקע הכחול שבנינו
-        selected.setTextColor(Color.WHITE); // טקסט לבן לכפתור הנבחר
+        // מצב נבחר: הרקע הכחול שבנינו ב-pilates_selected
+        selected.setBackgroundResource(R.drawable.pilates_selected);
+        selected.setTextColor(Color.WHITE);
     }
 
     interface OnSelectionListener { void onSelected(Button b); }

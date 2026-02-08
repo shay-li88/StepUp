@@ -49,7 +49,16 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="45dp"
                 android:layout_marginTop="10dp" android:background="@drawable/pilates_bar" android:padding="2dp">
                 <Button android:id="@+id/btnBeginner" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Beginner" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
-                <Button android:id="@+id/btnIntermediate" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Intermediate" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
+                <Button
+                    android:id="@+id/btnIntermediate"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Intermediate"
+                    android:backgroundTint="@null"
+                    android:background="@android:color/transparent"
+                    android:textColor="#1A4375"
+                    android:textAllCaps="false"/>
                 <Button android:id="@+id/btnAdvanced" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Advanced" android:background="@android:color/transparent" android:textColor="#1A4375" android:textAllCaps="false"/>
             </LinearLayout>
 

@@ -20,8 +20,8 @@ public class StrengthActivity extends AppCompatActivity {
     private Button btnLight, btnModerate, btnHeavy, btnUpper, btnLower, btnFull, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = "Moderate";
-    private String selectedType = "Upper Body";
+    private String selectedLevel = "Light";
+    private String selectedType = "Full Body";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +49,6 @@ public class StrengthActivity extends AppCompatActivity {
         // הגדרת כפתורי סוג אימון
         setupSelection(new Button[]{btnUpper, btnLower, btnFull}, btn -> selectedType = btn.getText().toString());
 
-        // מצב התחלתי
-        updateButtonUI(btnModerate, new Button[]{btnLight, btnModerate, btnHeavy});
-        updateButtonUI(btnUpper, new Button[]{btnUpper, btnLower, btnFull});
 
         btnGo.setOnClickListener(v -> {
             Intent intent = new Intent(this, WorkoutsActivity.class);
