@@ -3,11 +3,16 @@ package com.example.stepup;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RunningActivity extends AppCompatActivity {
     // הוסיפי את btnGo כאן למעלה
@@ -42,17 +47,44 @@ public class RunningActivity extends AppCompatActivity {
         setupDifficulty(btnIntense);
 
         btnGo.setOnClickListener(v -> {
+            // 1. איסוף הנתונים (וודאי שהמשתנים האלו מוגדרים אצלך)
+            String type = "Running";
+            String diff = selectedDifficulty;
             int time = timePicker.getValue();
-            int distance = distancePicker.getValue();
+            String notes = etNotes.getText().toString();
 
-            Intent intent = new Intent(RunningActivity.this, WorkoutsActivity.class);
-            intent.putExtra("type", "Running");
-            intent.putExtra("difficulty", selectedDifficulty);
-            intent.putExtra("time", time);
-            intent.putExtra("distance", distance);
-            intent.putExtra("notes", etNotes.getText().toString());
+            // בדיקה בסיסית שנבחרה רמה
+            if (diff == null || diff.isEmpty()) {
+                Toast.makeText(RunningActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            startActivity(intent);
+            // 2. יצירת אובייקט האימון
+            Workout newWorkout = new Workout(type, diff, time, notes);
+
+            // 3. שימוש ב-Firestore לפי הקוד הנכון שלך
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("Workouts").add(newWorkout)
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d("RunningActivity", "DocumentSnapshot written with ID: " + documentReference.getId());
+                        Toast.makeText(RunningActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
+
+                        // רק אם השמירה הצליחה - עוברים למסך הסיכום
+                        Intent intent = new Intent(RunningActivity.this, WorkoutsActivity.class);
+                        intent.putExtra("type", type);
+                        intent.putExtra("difficulty", diff);
+                        intent.putExtra("time", time);
+                        intent.putExtra("notes", notes);
+                        startActivity(intent);
+                        finish(); // סגירת האקטיביטי וחזרה לפיד
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w("RunningActivity", "Error adding document", e);
+                        Toast.makeText(RunningActivity.this, "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+
+            Log.d("RunningActivity", "save workout: done");
         });
     }
 

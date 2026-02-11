@@ -65,9 +65,6 @@ public class PilatesActivity extends AppCompatActivity {
             // 3. יצירת אובייקט האימון החדש מהמחלקה שיצרנו קודם
             Workout newWorkout = new Workout(type, diff, time, notes);
 
-            // 4. שמירה ל-Firebase
-            // "Workouts" זה השם של התיקייה הראשית במסד הנתונים
-
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             db.collection("Workouts").add(newWorkout)
