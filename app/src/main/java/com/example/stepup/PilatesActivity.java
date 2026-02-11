@@ -1,12 +1,17 @@
 package com.example.stepup;
-
+import android.content.Intent;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class PilatesActivity extends AppCompatActivity {
 
@@ -15,6 +20,8 @@ public class PilatesActivity extends AppCompatActivity {
     private EditText etNotes;
     private String selectedLevel = "Beginner";
     private String selectedFocus = "Core";
+
+    private static final String TAG = "PilatesActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +50,45 @@ public class PilatesActivity extends AppCompatActivity {
         setupSelection(new Button[]{btnCore, btnFlexibility, btnFullBody}, btn -> selectedFocus = btn.getText().toString());
 
         btnGo.setOnClickListener(v -> {
-            Intent intent = new Intent(this, WorkoutsActivity.class);
-            intent.putExtra("type", "Pilates - " + selectedFocus);
-            intent.putExtra("difficulty", selectedLevel);
-            intent.putExtra("time", timePicker.getValue());
-            intent.putExtra("notes", etNotes.getText().toString());
-            startActivity(intent);
+            // 1. איסוף הנתונים מהשדות
+            String type = "Pilates " + selectedFocus;
+            String diff = selectedLevel;
+            int time = timePicker.getValue();
+            String notes = etNotes.getText().toString();
+
+            // 2. בדיקה שהמשתמש בחר הכל (כדי שלא יישמר אימון ריק)
+            if (diff.isEmpty() || selectedFocus.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please select level and focus", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 3. יצירת אובייקט האימון החדש מהמחלקה שיצרנו קודם
+            Workout newWorkout = new Workout(type, diff, time, notes);
+
+            // 4. שמירה ל-Firebase
+            // "Workouts" זה השם של התיקייה הראשית במסד הנתונים
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("Workouts").add(newWorkout)
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+                        Toast.makeText(PilatesActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
+                        // רק אם השמירה הצליחה - עוברים למסך הסיכום
+                        Intent intent = new Intent(this, WorkoutsActivity.class);
+                        intent.putExtra("type", type);
+                        intent.putExtra("difficulty", diff);
+                        intent.putExtra("time", time);
+                        intent.putExtra("notes", notes);
+                        startActivity(intent);
+                        finish(); // Close this activity and return to FeedActivity
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, "Error adding document", e);
+                        Toast.makeText(PilatesActivity.this, "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+            Log.d(TAG, "save workout: done");
+
         });
 
     }

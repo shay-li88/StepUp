@@ -12,10 +12,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StepUp">
-        <activity
-            android:name=".WorkoutActivity"
-            android:exported="false" />
+        android:theme="@style/Base.Theme.StepUp">
+
         <activity
             android:name=".AddPostsActivity"
             android:exported="false" />
