@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StepUp">
         <activity
+            android:name=".WorkoutActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddPostsActivity"
             android:exported="false" />
         <activity
