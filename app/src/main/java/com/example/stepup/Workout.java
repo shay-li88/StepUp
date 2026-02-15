@@ -17,4 +17,8 @@ public class Workout {
         this.notes = notes;
         this.timestamp = System.currentTimeMillis();
     }
+    public String getType() { return type; }
+    public String getDifficulty() { return difficulty; }
+    public int getTime() { return time; }
+    public String getNotes() { return notes; }
 }

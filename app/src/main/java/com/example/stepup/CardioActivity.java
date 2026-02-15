@@ -23,7 +23,7 @@ public class CardioActivity extends AppCompatActivity {
     private Button btnLight, btnModerate, btnHIIT, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = ""; // התחלה ריקה כדי לוודא בחירה
+    private String selectedDifficulty = ""; // התחלה ריקה כדי לוודא בחירה
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,7 @@ public class CardioActivity extends AppCompatActivity {
         if (btnGo != null) {
             btnGo.setOnClickListener(v -> {
                 String type = "Cardio";
-                String diff = selectedLevel;
+                String diff = selectedDifficulty;
                 int time = (timePicker != null) ? timePicker.getValue() : 0;
                 String notes = (etNotes != null) ? etNotes.getText().toString() : "";
 
@@ -104,7 +104,7 @@ public class CardioActivity extends AppCompatActivity {
         btn.setOnClickListener(v -> {
             resetButtons();
             selectButton(btn);
-            selectedLevel = btn.getText().toString();
+            selectedDifficulty = btn.getText().toString();
         });
     }
 

@@ -22,7 +22,7 @@ public class StrengthActivity extends AppCompatActivity {
     private Button btnLight, btnModerate, btnHeavy, btnUpper, btnLower, btnFull, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = "Light";
+    private String selectedDifficulty = "Light";
     private String selectedType = "Full Body";
     private static final String TAG = "StrengthActivity";
 
@@ -57,7 +57,7 @@ public class StrengthActivity extends AppCompatActivity {
         }
 
         // הגדרת כפתורי רמת קושי
-        setupSelection(new Button[]{btnLight, btnModerate, btnHeavy}, btn -> selectedLevel = btn.getText().toString());
+        setupSelection(new Button[]{btnLight, btnModerate, btnHeavy}, btn -> selectedDifficulty = btn.getText().toString());
 
         // הגדרת כפתורי סוג אימון
         setupSelection(new Button[]{btnUpper, btnLower, btnFull}, btn -> selectedType = btn.getText().toString());
@@ -65,7 +65,7 @@ public class StrengthActivity extends AppCompatActivity {
         // --- לוגיקת שמירה ל-Firestore ומעבר מסך ---
         btnGo.setOnClickListener(v -> {
             String fullType = "Strength " + selectedType;
-            String diff = selectedLevel;
+            String diff = selectedDifficulty;
             int time = timePicker.getValue();
             String notes = etNotes.getText().toString();
 

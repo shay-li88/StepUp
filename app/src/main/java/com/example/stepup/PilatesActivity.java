@@ -1,6 +1,5 @@
 package com.example.stepup;
 import android.content.Intent;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,7 +17,7 @@ public class PilatesActivity extends AppCompatActivity {
     private Button btnBeginner, btnIntermediate, btnAdvanced, btnCore, btnFlexibility, btnFullBody, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedLevel = "Beginner";
+    private String selectedDifficulty = "Beginner";
     private String selectedFocus = "Core";
 
     private static final String TAG = "PilatesActivity";
@@ -44,7 +43,7 @@ public class PilatesActivity extends AppCompatActivity {
         timePicker.setValue(40); // ברירת מחדל לפי העיצוב
 
         // לוגיקה לבחירת רמה
-        setupSelection(new Button[]{btnBeginner, btnIntermediate, btnAdvanced}, btn -> selectedLevel = btn.getText().toString());
+        setupSelection(new Button[]{btnBeginner, btnIntermediate, btnAdvanced}, btn -> selectedDifficulty = btn.getText().toString());
 
         // לוגיקה לבחירת מיקוד
         setupSelection(new Button[]{btnCore, btnFlexibility, btnFullBody}, btn -> selectedFocus = btn.getText().toString());
@@ -52,7 +51,7 @@ public class PilatesActivity extends AppCompatActivity {
         btnGo.setOnClickListener(v -> {
             // 1. איסוף הנתונים מהשדות
             String type = "Pilates " + selectedFocus;
-            String diff = selectedLevel;
+            String diff = selectedDifficulty;
             int time = timePicker.getValue();
             String notes = etNotes.getText().toString();
 
