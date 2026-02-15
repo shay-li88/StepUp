@@ -6,4 +6,13 @@
     </style>
 
     <style name="Theme.StepUp" parent="Base.Theme.StepUp" />
+    <style name="WorkoutButtonStyle" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">55dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_margin">6dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
 </resources>
