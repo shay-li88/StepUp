@@ -30,26 +30,35 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
     @Override
     public void onBindViewHolder(@NonNull WorkoutViewHolder holder, int position) {
         Workout workout = workoutList.get(position);
+        String type = workout.getType();
 
-        // שימוש ב-Getters - ודאי שהם קיימים ב-Workout.java
-        holder.tvType.setText(workout.getType());
-        holder.tvDetails.setText("Difficulty: " + workout.getDifficulty() + " | Time: " + workout.getTime() + " min");
+        holder.tvType.setText(type);
+        holder.tvDetails.setText("Difficulty: " + workout.getDifficulty() + " | " + workout.getTime() + " min");
         holder.tvNotes.setText(workout.getNotes());
 
-        String type = workout.getType().toLowerCase();
+        int cardColor, textColor;
 
-        // לוגיקת צביעה לפי סוג האימון
-        if (type.contains("running")) {
-            holder.cardWorkout.setCardBackgroundColor(Color.parseColor("#B3DCB5"));
-        } else if (type.contains("pilates")) {
-            holder.cardWorkout.setCardBackgroundColor(Color.parseColor("#D0E1F9"));
-        } else if (type.contains("strength")) {
-            holder.cardWorkout.setCardBackgroundColor(Color.parseColor("#E8DFF5"));
-        } else if (type.contains("cardio")) {
-            holder.cardWorkout.setCardBackgroundColor(Color.parseColor("#FAD2E1"));
+        if (type.contains("Strength")) {
+            cardColor = Color.parseColor("#E7C7EB");
+            textColor = Color.parseColor("#4A148C");
+        } else if (type.contains("Pilates")) {
+            cardColor = Color.parseColor("#E3F2FD");
+            textColor = Color.parseColor("#1A4375");
+        } else if (type.contains("Cardio")) {
+            cardColor = Color.parseColor("#EFB0C3");
+            textColor = Color.parseColor("#C2185B");
+        } else if (type.contains("Running")) {
+            cardColor = Color.parseColor("#B3DCB5");
+            textColor = Color.parseColor("#2D6A4F");
         } else {
-            holder.cardWorkout.setCardBackgroundColor(Color.WHITE);
+            cardColor = Color.WHITE;
+            textColor = Color.BLACK;
         }
+
+        holder.cardWorkout.setCardBackgroundColor(cardColor);
+        holder.tvType.setTextColor(textColor);
+        holder.tvDetails.setTextColor(textColor);
+        holder.tvNotes.setTextColor(textColor);
     }
 
     @Override

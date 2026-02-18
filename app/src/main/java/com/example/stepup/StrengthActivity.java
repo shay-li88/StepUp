@@ -64,7 +64,7 @@ public class StrengthActivity extends AppCompatActivity {
 
         // --- לוגיקת שמירה ל-Firestore ומעבר מסך ---
         btnGo.setOnClickListener(v -> {
-            String fullType = "Strength " + selectedType;
+            String fullType = "Strength" + selectedType;
             String diff = selectedDifficulty;
             int time = timePicker.getValue();
             String notes = etNotes.getText().toString();

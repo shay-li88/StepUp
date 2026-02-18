@@ -21,4 +21,5 @@ public class Workout {
     public String getDifficulty() { return difficulty; }
     public int getTime() { return time; }
     public String getNotes() { return notes; }
+
 }
