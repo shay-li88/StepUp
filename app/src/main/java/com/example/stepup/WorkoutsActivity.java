@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -19,17 +17,18 @@ import com.example.stepup.utils.WorkoutAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WorkoutsActivity extends AppCompatActivity {
 
-    private static final String TAG = "WorkoutsActivity";
     private RecyclerView recyclerView;
     private WorkoutAdapter adapter;
     private List<Workout> workoutList;
-    private CardView emptyCard; // הכרטיס של "אין אימונים"
+    private List<Workout> fullWorkoutList;
+    private CardView emptyCard;
     private FirebaseFirestore db;
 
     @Override
@@ -38,7 +37,6 @@ public class WorkoutsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_workouts);
 
-        // 1. הגדרת שוליים
         View mainView = findViewById(R.id.main);
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
@@ -48,54 +46,78 @@ public class WorkoutsActivity extends AppCompatActivity {
             });
         }
 
-        // 2. אתחול רכיבים
         recyclerView = findViewById(R.id.recyclerViewWorkouts);
         emptyCard = findViewById(R.id.workoutCardEmpty);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         workoutList = new ArrayList<>();
+        fullWorkoutList = new ArrayList<>();
         adapter = new WorkoutAdapter(workoutList);
         recyclerView.setAdapter(adapter);
 
-        // 3. Firestore
         db = FirebaseFirestore.getInstance();
         loadWorkoutsFromFirestore();
-
+        setupFilterButtons();
         setupBottomNavigation();
+    }
+
+    private void setupFilterButtons() {
+        findViewById(R.id.btnFilterAll).setOnClickListener(v -> filterWorkouts("All"));
+        findViewById(R.id.btnFilterRunning).setOnClickListener(v -> filterWorkouts("Running"));
+        findViewById(R.id.btnFilterStrength).setOnClickListener(v -> filterWorkouts("Strength"));
+        findViewById(R.id.btnFilterCardio).setOnClickListener(v -> filterWorkouts("Cardio"));
+        findViewById(R.id.btnFilterPilates).setOnClickListener(v -> filterWorkouts("Pilates"));
+        findViewById(R.id.btnFilterRecent).setOnClickListener(v -> filterWorkouts("Recent"));
     }
 
     private void loadWorkoutsFromFirestore() {
         db.collection("Workouts")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        workoutList.clear();
-                        for (DocumentSnapshot document : queryDocumentSnapshots) {
-                            Workout workout = document.toObject(Workout.class);
-                            if (workout != null) {
-                                workoutList.add(workout);
-                            }
-                        }
-                        adapter.notifyDataSetChanged();
-
-                        // אם יש נתונים - נראה את הרשימה ונסתיר את כרטיס ה-Empty
-                        recyclerView.setVisibility(View.VISIBLE);
-                        emptyCard.setVisibility(View.GONE);
-                    } else {
-                        // אם אין נתונים - נסתיר את הרשימה ונראה את כרטיס ה-Empty
-                        recyclerView.setVisibility(View.GONE);
-                        emptyCard.setVisibility(View.VISIBLE);
+                    fullWorkoutList.clear();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        Workout workout = document.toObject(Workout.class);
+                        if (workout != null) fullWorkoutList.add(workout);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading workouts", e);
+                    filterWorkouts("All");
                 });
+    }
+
+    private void filterWorkouts(String criteria) {
+        workoutList.clear();
+        String searchCriteria = criteria.toLowerCase().trim();
+
+        if (criteria.equals("All")) {
+            workoutList.addAll(fullWorkoutList);
+        } else if (criteria.equals("Recent")) {
+            int limit = Math.min(fullWorkoutList.size(), 5);
+            for (int i = 0; i < limit; i++) {
+                workoutList.add(fullWorkoutList.get(i));
+            }
+        } else {
+            for (Workout w : fullWorkoutList) {
+                // חיפוש חכם שמתעלם מאותיות גדולות/קטנות
+                if (w.getType().toLowerCase().contains(searchCriteria)) {
+                    workoutList.add(w);
+                }
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+
+        if (workoutList.isEmpty()) {
+            emptyCard.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            emptyCard.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_workouts);
         if (bottomNav != null) {
-            bottomNav.setItemIconTintList(null);
             bottomNav.setSelectedItemId(R.id.nav_workouts);
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
@@ -104,7 +126,6 @@ public class WorkoutsActivity extends AppCompatActivity {
                 else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
                 else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
                 else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
-                overridePendingTransition(0, 0);
                 finish();
                 return true;
             });
