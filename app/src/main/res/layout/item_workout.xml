@@ -35,6 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Notes: Great workout!"
-            android:italic="true" />
+            android:textStyle="italic"
+            android:textColor="#777777" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
