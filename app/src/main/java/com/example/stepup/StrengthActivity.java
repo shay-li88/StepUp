@@ -64,13 +64,16 @@ public class StrengthActivity extends AppCompatActivity {
 
         // --- לוגיקת שמירה ל-Firestore ומעבר מסך ---
         btnGo.setOnClickListener(v -> {
-            String fullType = "Strength" + selectedType;
+            String fullType = "Strength - " + selectedType;
             String diff = selectedDifficulty;
             int time = timePicker.getValue();
             String notes = etNotes.getText().toString();
 
-            // 1. יצירת אובייקט האימון
-            Workout newWorkout = new Workout(fullType, diff, time, notes);
+            // הגדרת מרחק 0.0 כברירת מחדל לאימון כוח
+            double distance = 0.0;
+
+            // 1. יצירת אובייקט האימון עם 5 פרמטרים (כולל distance)
+            Workout newWorkout = new Workout(fullType, diff, time, notes, distance);
 
             // 2. שמירה ל-Firestore
             FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -79,12 +82,8 @@ public class StrengthActivity extends AppCompatActivity {
                         Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
                         Toast.makeText(StrengthActivity.this, "Strength workout saved!", Toast.LENGTH_SHORT).show();
 
-                        // 3. מעבר למסך הסיכום רק לאחר הצלחה
+                        // 3. מעבר למסך רשימת האימונים
                         Intent intent = new Intent(StrengthActivity.this, WorkoutsActivity.class);
-                        intent.putExtra("type", fullType);
-                        intent.putExtra("difficulty", diff);
-                        intent.putExtra("time", time);
-                        intent.putExtra("notes", notes);
                         startActivity(intent);
                         finish();
                     })
@@ -108,9 +107,10 @@ public class StrengthActivity extends AppCompatActivity {
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
             b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#4A148C")); // צבע סגול כהה
+            b.setTextColor(Color.parseColor("#4A148C")); // סגול כהה
         }
-        selected.setBackgroundResource(R.drawable.strength_selected); // ודאי שקיים drawable כזה
+        // שימוש ב-drawable הסגול שביקשת
+        selected.setBackgroundResource(R.drawable.strength_selected);
         selected.setTextColor(Color.WHITE);
     }
 

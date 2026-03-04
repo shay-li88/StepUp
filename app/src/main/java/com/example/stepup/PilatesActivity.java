@@ -1,4 +1,5 @@
 package com.example.stepup;
+
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -55,14 +56,17 @@ public class PilatesActivity extends AppCompatActivity {
             int time = timePicker.getValue();
             String notes = etNotes.getText().toString();
 
-            // 2. בדיקה שהמשתמש בחר הכל (כדי שלא יישמר אימון ריק)
+            // הוספת מרחק כברירת מחדל (0.0) כי זה אימון פילאטיס
+            double distance = 0.0;
+
+            // 2. בדיקה שהמשתמש בחר הכל
             if (diff.isEmpty() || selectedFocus.isEmpty()) {
-                android.widget.Toast.makeText(this, "Please select level and focus", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please select level and focus", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 3. יצירת אובייקט האימון החדש מהמחלקה שיצרנו קודם
-            Workout newWorkout = new Workout(type, diff, time, notes);
+            // 3. יצירת אובייקט האימון עם 5 פרמטרים (כולל distance)
+            Workout newWorkout = new Workout(type, diff, time, notes, distance);
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -70,23 +74,18 @@ public class PilatesActivity extends AppCompatActivity {
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
                         Toast.makeText(PilatesActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
-                        // רק אם השמירה הצליחה - עוברים למסך הסיכום
+
+                        // מעבר למסך רשימת האימונים
                         Intent intent = new Intent(this, WorkoutsActivity.class);
-                        intent.putExtra("type", type);
-                        intent.putExtra("difficulty", diff);
-                        intent.putExtra("time", time);
-                        intent.putExtra("notes", notes);
                         startActivity(intent);
-                        finish(); // Close this activity and return to FeedActivity
+                        finish();
                     })
                     .addOnFailureListener(e -> {
                         Log.w(TAG, "Error adding document", e);
                         Toast.makeText(PilatesActivity.this, "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
             Log.d(TAG, "save workout: done");
-
         });
-
     }
 
     private void setupSelection(Button[] group, OnSelectionListener listener) {
@@ -100,14 +99,10 @@ public class PilatesActivity extends AppCompatActivity {
 
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
-            // ביטול ה-Tint של אנדרואיד כדי שנוכל לראות את ה-Drawable שלנו
             b.setBackgroundTintList(null);
-
-            // מצב לא נבחר: רקע שקוף וטקסט כחול כהה
             b.setBackgroundResource(android.R.color.transparent);
             b.setTextColor(Color.parseColor("#1A4375"));
         }
-        // מצב נבחר: הרקע הכחול שבנינו ב-pilates_selected
         selected.setBackgroundResource(R.drawable.pilates_selected);
         selected.setTextColor(Color.WHITE);
     }

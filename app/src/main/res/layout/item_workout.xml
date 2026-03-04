@@ -18,7 +18,7 @@
             android:id="@+id/tvItemType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pilates"
+            android:text="Workout Type"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -26,8 +26,19 @@
             android:id="@+id/tvItemDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="Difficulty: Medium | 45 min"
-            android:textColor="#666666" />
+            android:textColor="#444444" />
+
+        <TextView
+            android:id="@+id/tvItemDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Distance: 0.0 km"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tvItemNotes"
@@ -36,6 +47,7 @@
             android:layout_marginTop="8dp"
             android:text="Notes: Great workout!"
             android:textStyle="italic"
-            android:textColor="#777777" />
+            android:textColor="#666666" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

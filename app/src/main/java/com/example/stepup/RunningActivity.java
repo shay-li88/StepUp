@@ -10,15 +10,13 @@ import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RunningActivity extends AppCompatActivity {
-    // הוסיפי את btnGo כאן למעלה
+
     private Button btnEasy, btnMedium, btnIntense, btnGo;
     private NumberPicker timePicker, distancePicker;
-
     private EditText etNotes;
     private String selectedDifficulty = "Easy";
 
@@ -31,71 +29,68 @@ public class RunningActivity extends AppCompatActivity {
         btnEasy = findViewById(R.id.btnEasy);
         btnMedium = findViewById(R.id.btnMedium);
         btnIntense = findViewById(R.id.btnIntense);
-        btnGo = findViewById(R.id.btnGoActivity); // זה היה חסר!
+        btnGo = findViewById(R.id.btnGoActivity);
         timePicker = findViewById(R.id.timePicker);
         distancePicker = findViewById(R.id.distancePicker);
-
         etNotes = findViewById(R.id.etRunningNotes);
 
+        // הגדרת הגלילים (Time & Distance)
+        timePicker.setMinValue(1);
+        timePicker.setMaxValue(120);
+        timePicker.setValue(30);
 
-        // הגדרת הגלילים
-        timePicker.setMinValue(1); timePicker.setMaxValue(120); timePicker.setValue(30);
-        distancePicker.setMinValue(1); distancePicker.setMaxValue(50); distancePicker.setValue(4);
+        distancePicker.setMinValue(1);
+        distancePicker.setMaxValue(50);
+        distancePicker.setValue(4);
 
+        // הגדרת כפתורי רמת קושי
         setupDifficulty(btnEasy);
         setupDifficulty(btnMedium);
         setupDifficulty(btnIntense);
 
+        // כפתור שמירה ושליחה
         btnGo.setOnClickListener(v -> {
-            // 1. איסוף הנתונים (וודאי שהמשתנים האלו מוגדרים אצלך)
+            // 1. איסוף הנתונים
             String type = "Running";
             String diff = selectedDifficulty;
             int time = timePicker.getValue();
+            double distance = (double) distancePicker.getValue(); // שליפת המרחק מהגליל
             String notes = etNotes.getText().toString();
 
-            // בדיקה בסיסית שנבחרה רמה
             if (diff == null || diff.isEmpty()) {
                 Toast.makeText(RunningActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 2. יצירת אובייקט האימון
-            Workout newWorkout = new Workout(type, diff, time, notes);
+            // 2. יצירת אובייקט האימון המעודכן (עם 5 פרמטרים כולל distance)
+            Workout newWorkout = new Workout(type, diff, time, notes, distance);
 
-            // 3. שימוש ב-Firestore לפי הקוד הנכון שלך
+            // 3. שמירה ל-Firestore
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             db.collection("Workouts").add(newWorkout)
                     .addOnSuccessListener(documentReference -> {
-                        Log.d("RunningActivity", "DocumentSnapshot written with ID: " + documentReference.getId());
-                        Toast.makeText(RunningActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
+                        Log.d("RunningActivity", "Workout saved with ID: " + documentReference.getId());
+                        Toast.makeText(RunningActivity.this, "Workout saved successfully!", Toast.LENGTH_SHORT).show();
 
-                        // רק אם השמירה הצליחה - עוברים למסך הסיכום
+                        // מעבר למסך רשימת האימונים
                         Intent intent = new Intent(RunningActivity.this, WorkoutsActivity.class);
-                        intent.putExtra("type", type);
-                        intent.putExtra("difficulty", diff);
-                        intent.putExtra("time", time);
-                        intent.putExtra("notes", notes);
                         startActivity(intent);
-                        finish(); // סגירת האקטיביטי וחזרה לפיד
+                        finish();
                     })
                     .addOnFailureListener(e -> {
                         Log.w("RunningActivity", "Error adding document", e);
-                        Toast.makeText(RunningActivity.this, "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(RunningActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
-
-            Log.d("RunningActivity", "save workout: done");
         });
     }
 
     private void setupDifficulty(Button clickedBtn) {
         clickedBtn.setOnClickListener(v -> {
-            resetButtons(); // קודם כל מאפסים את כולם
-
-            // צובעים את הנבחר בטורקיז (הקובץ שיצרת ב-drawable)
+            resetButtons();
+            // שימוש בטורקיז לפי ה-drawable שלך
             clickedBtn.setBackgroundResource(R.drawable.selected_difficulty);
-            clickedBtn.setTextColor(Color.WHITE); // טקסט לבן בבחירה
-
+            clickedBtn.setTextColor(Color.WHITE);
             selectedDifficulty = clickedBtn.getText().toString();
         });
     }
@@ -103,9 +98,8 @@ public class RunningActivity extends AppCompatActivity {
     private void resetButtons() {
         Button[] btns = {btnEasy, btnMedium, btnIntense};
         for (Button b : btns) {
-            // מחזירים לרקע שקוף וטקסט ירוק כהה
             b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#2D6A4F"));
+            b.setTextColor(Color.parseColor("#2D6A4F")); // ירוק כהה
         }
     }
 }
