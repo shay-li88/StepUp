@@ -53,18 +53,24 @@ public class PostsActivity extends AppCompatActivity {
     }
 
     private void loadPostsFromFirestore() {
-        // שליפת הפוסטים מסודרים לפי זמן (החדש ביותר למעלה)
         db.collection("Posts")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
-                        Toast.makeText(this, "Error loading posts", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "שגיאה בטעינת פוסטים", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     if (value != null) {
                         postList.clear();
-                        postList.addAll(value.toObjects(Post.class));
+                        // במקום toObjects, אנחנו עוברים על כל מסמך ידנית כדי לשלוף את ה-ID
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
+                            Post post = doc.toObject(Post.class);
+                            if (post != null) {
+                                post.setPostId(doc.getId()); // כאן אנחנו מחברים את ה-ID מה-Firebase לאובייקט!
+                                postList.add(post);
+                            }
+                        }
                         adapter.notifyDataSetChanged();
                     }
                 });

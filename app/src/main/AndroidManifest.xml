@@ -13,7 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.StepUp">
-
+        <activity
+            android:name=".MyPostsActivity"
+            android:exported="false" />
         <activity
             android:name=".AddPostsActivity"
             android:exported="false" />

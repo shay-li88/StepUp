@@ -52,7 +52,7 @@ public class WorkoutsActivity extends AppCompatActivity {
 
         workoutList = new ArrayList<>();
         fullWorkoutList = new ArrayList<>();
-        adapter = new WorkoutAdapter(workoutList);
+        adapter = new WorkoutAdapter(this, workoutList);
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();

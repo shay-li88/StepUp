@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardPost"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
@@ -59,11 +60,25 @@
             </LinearLayout>
 
             <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/btnDeletePost"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_more" />
-        </LinearLayout>
+                android:src="@android:drawable/ic_menu_delete"
+                android:contentDescription="Delete"
+                app:tint="#03124B"
+                android:visibility="gone" /> </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPostTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:text="Post Title"
+            android:textColor="#03124B"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvPostContent"
@@ -136,9 +151,10 @@
                 android:padding="8dp">
                 <ImageView
                     android:id="@+id/ivLikeIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@android:drawable/btn_star_big_off" />
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_heart_empty"
+                    app:tint="#03124B" />
                 <TextView
                     android:id="@+id/tvLikeCount"
                     android:layout_width="wrap_content"
