@@ -16,9 +16,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // השורה הזו היא הקסם שמתקן את האדומים ב-Layout
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "StepUp"
 include(":app")
- 
