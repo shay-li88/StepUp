@@ -1,16 +1,21 @@
 package com.example.stepup;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -19,6 +24,8 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvStreak, tvStars, tvLogs, tvWorkouts;
     private Button btnEditProfile, btnMyPosts;
     private BarChart barChart;
+    private FirebaseFirestore db;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,11 +35,27 @@ public class ProfileActivity extends AppCompatActivity {
         // 1. אתחול רכיבים
         initViews();
 
-        // 2. הגדרת הגרף (גם אם אין נתונים, שיראו את הצירים)
+        // 2. אתחול Firebase
+        db = FirebaseFirestore.getInstance();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            // 3. טעינת נתונים בזמן אמת מה-Firestore
+            loadUserData();
+        }
+
+        // 4. הגדרת הגרף
         setupChart();
 
-        // 3. דוגמה להגדרת נתונים ראשונית (במציאות זה יגיע מ-Firebase)
-        mockDataCheck();
+        // 5. כפתור מעבר למסך עריכה
+        btnEditProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        // כפתור פוסטים (כרגע רק Toast או הכנה לעתיד)
+        btnMyPosts.setOnClickListener(v -> {
+            // כאן יבוא הקוד למעבר למסך הפוסטים שלך
+        });
     }
 
     private void initViews() {
@@ -52,60 +75,74 @@ public class ProfileActivity extends AppCompatActivity {
         barChart = findViewById(R.id.barChart);
     }
 
-    private void mockDataCheck() {
-        // בדיקה אם הנתונים הם 0 (כמו שביקשת)
-        int age = 0; // נניח שזה מה שחזר מה-DB
+    private void loadUserData() {
+        // המאזין הזה מעדכן את המסך אוטומטית בכל פעם שיש שינוי ב-DB
+        db.collection("users").document(userId).addSnapshotListener((documentSnapshot, e) -> {
+            if (documentSnapshot != null && documentSnapshot.exists()) {
 
-        if (age == 0) {
-            btnEditProfile.setText("Add Details");
-            tvAge.setText("Age 0");
-            tvHeight.setText("0 cm");
-            tvWeight.setText("0 kg");
-            tvBMI.setText("BMI 0.0");
-        } else {
-            btnEditProfile.setText("Edit Details");
-            // כאן תכניסי נתונים אמיתיים
-        }
+                String name = documentSnapshot.getString("name");
+                Long age = documentSnapshot.getLong("age");
+                Double height = documentSnapshot.getDouble("height");
+                Double weight = documentSnapshot.getDouble("weight");
+                Double bmi = documentSnapshot.getDouble("bmi");
+
+                // עדכון התצוגה
+                tvUserName.setText(name != null ? name : "User");
+                tvAge.setText("Age " + (age != null ? age : 0));
+                tvHeight.setText((height != null ? height : 0) + " cm");
+                tvWeight.setText((weight != null ? weight : 0) + " kg");
+                tvBMI.setText("BMI " + (bmi != null ? String.format("%.1f", bmi) : "0.0"));
+
+                // שינוי טקסט הכפתור לפי מצב הנתונים
+                if (age != null && age > 0) {
+                    btnEditProfile.setText("Edit Details");
+                } else {
+                    btnEditProfile.setText("Add Details");
+                }
+            }
+        });
     }
 
     private void setupChart() {
         ArrayList<BarEntry> entries = new ArrayList<>();
-        // הוספת נתונים לדוגמה לימי השבוע (Mon-Sun)
-        entries.add(new BarEntry(0, 1.5f)); // Mon
-        entries.add(new BarEntry(1, 2.2f)); // Tue
-        entries.add(new BarEntry(2, 2.5f)); // Wed
-        entries.add(new BarEntry(3, 3.8f)); // Thu
-        entries.add(new BarEntry(4, 4.2f)); // Fri
-        entries.add(new BarEntry(5, 5.0f)); // Sat
-        entries.add(new BarEntry(6, 3.5f)); // Sun
+        // נתונים סטטיים כרגע - בהמשך נמשוך מה-DB לפי אימונים
+        entries.add(new BarEntry(0, 1.5f));
+        entries.add(new BarEntry(1, 2.2f));
+        entries.add(new BarEntry(2, 2.5f));
+        entries.add(new BarEntry(3, 3.8f));
+        entries.add(new BarEntry(4, 4.2f));
+        entries.add(new BarEntry(5, 5.0f));
+        entries.add(new BarEntry(6, 3.5f));
 
-        BarDataSet dataSet = new BarDataSet(entries, "Activity");
+        BarDataSet dataSet = new BarDataSet(entries, "Weekly Activity");
 
-        // הגדרת צבעים פסטליים לעמודות (Running, Cardio, Pilates, Strength)
         int[] colors = {
-                Color.parseColor("#A5D6A7"), // Green (Running)
-                Color.parseColor("#F48FB1"), // Pink (Cardio)
-                Color.parseColor("#90CAF9"), // Blue (Pilates)
-                Color.parseColor("#B39DDB")  // Purple (Strength)
+                Color.parseColor("#A5D6A7"), // Green
+                Color.parseColor("#F48FB1"), // Pink
+                Color.parseColor("#90CAF9"), // Blue
+                Color.parseColor("#B39DDB"), // Purple
+                Color.parseColor("#FFCC80"), // Orange
+                Color.parseColor("#CE93D8"), // Light Purple
+                Color.parseColor("#80CBC4")  // Teal
         };
+
         dataSet.setColors(colors);
-        dataSet.setDrawValues(false); // שלא יראו מספרים מעל העמודות
+        dataSet.setDrawValues(false);
 
         BarData data = new BarData(dataSet);
-        data.setBarWidth(0.6f); // רוחב העמודות
+        data.setBarWidth(0.6f);
 
         barChart.setData(data);
 
-        // עיצוב הצירים
         XAxis xAxis = barChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
 
-        barChart.getAxisRight().setEnabled(false); // ביטול ציר ימין
-        barChart.getDescription().setEnabled(false); // ביטול טקסט תיאור
-        barChart.animateY(1000); // אנימציה של עליה
+        barChart.getAxisRight().setEnabled(false);
+        barChart.getDescription().setEnabled(false);
+        barChart.animateY(1000);
         barChart.invalidate();
     }
 }

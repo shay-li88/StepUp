@@ -62,8 +62,9 @@ public class EditProfileActivity extends AppCompatActivity {
             userUpdate.put("weight", weight);
             userUpdate.put("bmi", bmi);
 
+            // התיקון כאן: שימוש ב-set עם SetOptions.merge() במקום update
             db.collection("users").document(userId)
-                    .update(userUpdate)
+                    .set(userUpdate, com.google.firebase.firestore.SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show();
                         finish();
