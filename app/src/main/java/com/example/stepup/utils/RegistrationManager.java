@@ -11,6 +11,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
 import java.util.HashMap;
@@ -26,14 +28,12 @@ public class RegistrationManager {
     private static final int REGISTRATION_PHASE_DONE = 4;
     private int registrationPhase;
     FirebaseAuth auth;
+    FirebaseFirestore db; // הוספנו את Firestore
 
     File imageFile;
-
     String userId;
-
     String email;
     String password;
-
     String nickname;
     int age;
     Activity activity;
@@ -44,43 +44,30 @@ public class RegistrationManager {
         Log.d(TAG, "RegistrationManager: started");
         this.activity = activity;
         auth = FirebaseAuth.getInstance();
-
-
+        db = FirebaseFirestore.getInstance(); // אתחול Firestore
         registrationPhase = REGISTRATION_PHASE_VALIDATE_USER_INFO;
-
     }
 
-    public void startRegistration(String email,
-                                  String password,
-                                  File imageFile,
-                                  String nickname,
-                                  int age,
-                                  OnResultCallback onResultCallback)
-    {
+    public void startRegistration(String email, String password, File imageFile, String nickname, int age, OnResultCallback onResultCallback) {
         this.onResultCallback = onResultCallback;
         this.email = email;
         this.password = password;
         this.imageFile = imageFile;
         this.nickname = nickname;
         this.age = age;
-
         executeNextPhase();
     }
-
 
     public interface OnResultCallback {
         void onResult(boolean success, String message);
     }
 
-
-    private void phaseDone()
-    {
+    private void phaseDone() {
         registrationPhase++;
         executeNextPhase();
     }
 
-    private void phaseFailed(String message)
-    {
+    private void phaseFailed(String message) {
         Log.e(TAG, "phaseFailed: registration failed: message: " + message);
         registrationPhase = REGISTRATION_PHASE_VALIDATE_USER_INFO;
         FirebaseUser user = auth.getCurrentUser();
@@ -89,125 +76,82 @@ public class RegistrationManager {
         }
         auth.signOut();
         onResultCallback.onResult(false, message);
-
-
     }
 
-    private void executeNextPhase()
-    {
+    private void executeNextPhase() {
         Log.d(TAG, "executeNextPhase: executing phase: " + registrationPhase);
-
-        if(registrationPhase == REGISTRATION_PHASE_VALIDATE_USER_INFO)
-        {
-            Log.i(TAG, "executeNextPhase: fetching user info from form");
-            validateUserInfo();
-        }
-        else if(registrationPhase == REGISTRATION_PHASE_CREATE_USER)
-        {
-            Log.i(TAG, "executeNextPhase: Creating user with Firebase Auth");
-            createUser();
-        }
-        else if(registrationPhase == REGISTRATION_PHASE_UPLOAD_PIC)
-        {
-            Log.i(TAG, "executeNextPhase: Uploading profile picture to supabase");
-            uploadProfilePictureToSupabase();
-        }
-        else if(registrationPhase == REGISTRATION_PHASE_UPLOAD_DATA)
-        {
-            Log.i(TAG, "executeNextPhase: Uploading user data to firestore");
-            saveUserToFirestore();
-        }
-        else if(registrationPhase == REGISTRATION_PHASE_DONE)
-        {
-            Log.i(TAG, "executeNextPhase: Registration done");
-            onResultCallback.onResult(true, "Registration successful!");
-        }
+        if(registrationPhase == REGISTRATION_PHASE_VALIDATE_USER_INFO) validateUserInfo();
+        else if(registrationPhase == REGISTRATION_PHASE_CREATE_USER) createUser();
+        else if(registrationPhase == REGISTRATION_PHASE_UPLOAD_PIC) uploadProfilePictureToSupabase();
+        else if(registrationPhase == REGISTRATION_PHASE_UPLOAD_DATA) saveUserToFirestore();
+        else if(registrationPhase == REGISTRATION_PHASE_DONE) onResultCallback.onResult(true, "Registration successful!");
     }
 
     private void validateUserInfo() {
-        Log.d(TAG, "Starting registration for email: " + email );
-
-        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)  ) {
-            Log.w(TAG, "Validation failed: missing fields");
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             phaseFailed("Please fill in all fields");
             return;
         }
-
         phaseDone();
     }
 
     private void createUser() {
-        Log.d(TAG, "createUser: Creating user with Firebase Auth");
-
-        // יצירת משתמש עם אימייל וסיסמה
         auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            FirebaseUser user = auth.getCurrentUser();
-                            if (user != null) {
-                                userId = user.getUid();
-                                Log.i(TAG, "Firebase Auth registration successful. UID: " + userId);
-
-                                // עדכון ה-Nickname (Username) בפרופיל של המשתמש ב-Firebase
-                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates =
-                                        new com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                                                .setDisplayName(nickname) // משתמש במשתנה nickname שהתקבל ב-startRegistration
-                                                .build();
-
-                                user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> profileTask) {
-                                        if (profileTask.isSuccessful()) {
-                                            Log.i(TAG, "User profile updated with nickname: " + nickname);
-                                        } else {
-                                            Log.w(TAG, "User profile update failed", profileTask.getException());
-                                        }
-                                        // ממשיך לשלב הבא (תמונה או דאטה) בכל מקרה כדי לא לתקוע את הרישום
-                                        phaseDone();
-                                    }
-                                });
-
-                            } else {
-                                Log.e(TAG, "Firebase Auth registration succeeded but user is null");
-                                phaseFailed("user is null");
-                            }
+                .addOnCompleteListener(activity, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = auth.getCurrentUser();
+                        if (user != null) {
+                            userId = user.getUid();
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(nickname)
+                                    .build();
+                            user.updateProfile(profileUpdates).addOnCompleteListener(profileTask -> phaseDone());
                         } else {
-                            Log.e(TAG, "Firebase Auth registration failed", task.getException());
-                            phaseFailed(task.getException() != null ? task.getException().getMessage() : "Unknown error");
+                            phaseFailed("user is null");
                         }
+                    } else {
+                        phaseFailed(task.getException() != null ? task.getException().getMessage() : "Unknown error");
                     }
                 });
     }
 
     private void uploadProfilePictureToSupabase() {
         if (imageFile == null) {
-            Log.d(TAG, "uploadProfilePictureToSupabase: no image file provided");
             phaseDone();
             return;
         }
-
         String filename = "images/profile-pics/" + userId + ".jpg";
-        Log.i(TAG, "Uploading file to Supabase: " + filename);
-
-        SupabaseStorageHelper.uploadPicture(imageFile, filename, new SupabaseStorageHelper.OnResultCallback() {
-            @Override
-            public void onResult(boolean success, String url, String error) {
-                if (success) {
-                    Log.i(TAG, "Profile picture uploaded successfully to Supabase. Public URL: " + url);
-                    phaseDone();
-                } else {
-                    Log.e(TAG, "Supabase upload failed: " + error);
-                    phaseFailed("Failed to upload profile picture (Supabase): " + error);
-                }
-            }
+        SupabaseStorageHelper.uploadPicture(imageFile, filename, (success, url, error) -> {
+            if (success) phaseDone();
+            else phaseFailed("Failed to upload profile picture: " + error);
         });
-
     }
 
+    // התיקון המרכזי כאן - שמירת כל הנתונים שביקשת
+    private void saveUserToFirestore() {
+        Log.d(TAG, "saveUserToFirestore: Saving initial data for " + userId);
 
-    private void saveUserToFirestore() {phaseDone();}
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", nickname);       // השם האמיתי מההרשמה
+        user.put("email", email);
+        user.put("streak", 0);            // אתחול סטריק ל-0
+        user.put("totalStars", 0);        // אתחול כוכבים ל-0
+        user.put("totalWorkouts", 0);     // אתחול אימונים ל-0
+        user.put("logs", 0);              // אתחול לוגים ל-0
+        user.put("age", age);             // גיל ראשוני (0)
+        user.put("height", 0.0);
+        user.put("weight", 0.0);
+        user.put("bmi", 0.0);
 
+        db.collection("users").document(userId)
+                .set(user)
+                .addOnSuccessListener(aVoid -> {
+                    Log.i(TAG, "Firestore data saved successfully");
+                    phaseDone();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Firestore save failed", e);
+                    phaseFailed("Failed to save user data to Firestore");
+                });
+    }
 }
-

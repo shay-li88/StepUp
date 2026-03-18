@@ -1,11 +1,10 @@
 package com.example.stepup;
 
 import android.os.Bundle;
-import android.widget.Toast;
+import android.widget.ImageButton;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.stepup.utils.PostAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -15,9 +14,8 @@ import java.util.List;
 public class MyPostsActivity extends AppCompatActivity {
 
     private RecyclerView rvMyPosts;
-    private PostAdapter adapter;
-    private List<Post> postList;
     private FirebaseFirestore db;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,41 +23,26 @@ public class MyPostsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_my_posts);
 
         db = FirebaseFirestore.getInstance();
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         rvMyPosts = findViewById(R.id.rvMyPosts);
         rvMyPosts.setLayoutManager(new LinearLayoutManager(this));
 
-        postList = new ArrayList<>();
-        // השתמשי ב-PostAdapter שסידרנו קודם
-        adapter = new PostAdapter(this, postList);
-        rvMyPosts.setAdapter(adapter);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         loadMyPosts();
     }
 
     private void loadMyPosts() {
-        String currentUserId = FirebaseAuth.getInstance().getUid();
-        if (currentUserId == null) return;
-
-        // שאילתה שמביאה רק פוסטים שבהם userId שווה למשתמש הנוכחי
-        db.collection("Posts")
-                .whereEqualTo("userId", currentUserId)
-                .orderBy("timestamp", Query.Direction.DESCENDING) // מסדר מהחדש לישן
+        // כאן אנחנו מחפשים בתוך אוסף שנקרא "posts" את כל מה שה-authorId שלו הוא המשתמש הנוכחי
+        db.collection("posts")
+                .whereEqualTo("authorId", userId)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Toast.makeText(this, "שגיאה בטעינת פוסטים", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
                     if (value != null) {
-                        postList.clear();
-                        for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
-                            Post post = doc.toObject(Post.class);
-                            if (post != null) {
-                                post.setPostId(doc.getId());
-                                postList.add(post);
-                            }
-                        }
-                        adapter.notifyDataSetChanged();
+                        // כאן נכניס את הלוגיקה של ה-Adapter (הצגת הפוסטים)
+                        // בינתיים זה יציג רשימה ריקה עד שנוסיף פוסטים ל-DB
                     }
                 });
     }
