@@ -30,17 +30,29 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // 1. אתחול כל ה-Views (הטקסטים והכפתורים)
         initViews();
+
+        // 2. אתחול Firebase ושליפת נתונים (שם, סטריק, גיל וכו')
         db = FirebaseFirestore.getInstance();
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             loadUserData();
         }
 
+        // 3. הגדרת הגרף הצבעוני
         setupChart();
 
+        // 4. קישור כפתור "Edit Details" למסך העריכה
         btnEditProfile.setOnClickListener(v -> {
-            startActivity(new Intent(ProfileActivity.this, EditProfileActivity.class));
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        // 5. התיקון: קישור כפתור "My Posts" למסך הפוסטים החדש
+        btnMyPosts.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, MyPostsActivity.class);
+            startActivity(intent);
         });
     }
 

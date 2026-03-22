@@ -42,21 +42,33 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         return new PostViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = postList.get(position);
         String currentUserId = FirebaseAuth.getInstance().getUid();
 
-        // 1. הצגת נתונים בסיסיים
+        // 1. נתונים בסיסיים
         holder.tvUserName.setText(post.getUserName() != null ? post.getUserName() : "Anonymous");
         holder.tvPostTitle.setText(post.getTitle() != null ? post.getTitle() : "");
         holder.tvPostContent.setText(post.getContent());
-        holder.tvCommentCount.setText(post.getCommentCount() + " Comments");
-
-        // עדכון הזמן מ-"Just now" לזמן אמיתי
         holder.tvPostTime.setText(getTimeAgo(post.getTimestamp()));
 
-        // 2. צביעת רקע הפוסט לפי סוג האימון
+        // --- תיקון ספירת תגובות (שימוש ב-"Posts" עם P גדולה) ---
+        if (post.getPostId() != null) {
+            FirebaseFirestore.getInstance().collection("Posts") // תיקון ל-P גדולה
+                    .document(post.getPostId())
+                    .collection("Comments") // ודאי שזה תואם למה שכתבת ב-CommentsSheet
+                    .addSnapshotListener((value, error) -> {
+                        if (value != null) {
+                            holder.tvCommentCount.setText(value.size() + " Comments");
+                        }
+                    });
+        } else {
+            holder.tvCommentCount.setText("0 Comments");
+        }
+
+        // 2. צביעת רקע (הלוגיקה שלך)
         if (post.isHasWorkout() && post.getWorkoutType() != null) {
             String type = post.getWorkoutType().toLowerCase().trim();
             int color;
@@ -67,13 +79,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             else color = Color.WHITE;
 
             holder.cardPost.setCardBackgroundColor(color);
-            holder.layoutWorkoutBadge.setVisibility(View.GONE);
         } else {
             holder.cardPost.setCardBackgroundColor(Color.WHITE);
-            holder.layoutWorkoutBadge.setVisibility(View.GONE);
         }
 
-        // 3. כפתור מחיקה
+        // 3. מחיקה
         if (post.getUserId() != null && post.getUserId().equals(currentUserId)) {
             holder.btnDeletePost.setVisibility(View.VISIBLE);
             holder.btnDeletePost.setOnClickListener(v -> showDeleteDialog(post.getPostId(), position));
@@ -81,19 +91,31 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             holder.btnDeletePost.setVisibility(View.GONE);
         }
 
-        // 4. לייקים
-        int likeCount = post.getLikedBy() != null ? post.getLikedBy().size() : 0;
-        holder.tvLikeCount.setText(String.valueOf(likeCount));
-        if (post.getLikedBy() != null && post.getLikedBy().contains(currentUserId)) {
-            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart_full);
-            holder.ivLikeIcon.setColorFilter(Color.RED);
-        } else {
-            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart_empty);
-            holder.ivLikeIcon.clearColorFilter();
-        }
+        // 4. --- לייקים (צביעה מיידית של הלב) ---
+        List<String> likedBy = post.getLikedBy();
+        boolean isLiked = likedBy != null && likedBy.contains(currentUserId);
 
-        holder.btnLike.setOnClickListener(v -> handleLikeClick(post, currentUserId));
+        // עדכון מראה הלב
+        updateLikeUI(holder, isLiked, likedBy != null ? likedBy.size() : 0);
 
+        holder.btnLike.setOnClickListener(v -> {
+            if (post.getPostId() == null) return;
+
+            // עדכון מקומי מהיר ב-UI (כדי שהמשתמש לא יחכה לשרת)
+            if (post.getLikedBy().contains(currentUserId)) {
+                post.getLikedBy().remove(currentUserId);
+                updateLikeUI(holder, false, post.getLikedBy().size());
+                FirebaseFirestore.getInstance().collection("Posts").document(post.getPostId())
+                        .update("likedBy", FieldValue.arrayRemove(currentUserId));
+            } else {
+                post.getLikedBy().add(currentUserId);
+                updateLikeUI(holder, true, post.getLikedBy().size());
+                FirebaseFirestore.getInstance().collection("Posts").document(post.getPostId())
+                        .update("likedBy", FieldValue.arrayUnion(currentUserId));
+            }
+        });
+
+        // 5. פתיחת תגובות
         holder.btnComment.setOnClickListener(v -> {
             if (post.getPostId() != null) {
                 CommentsSheet sheet = new CommentsSheet(post.getPostId());
@@ -102,44 +124,44 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         });
     }
 
-    // פונקציית עזר לחישוב כמה זמן עבר מאז הפרסום
+    // פונקציית עזר לעיצוב הלב
+    private void updateLikeUI(PostViewHolder holder, boolean isLiked, int count) {
+        holder.tvLikeCount.setText(String.valueOf(count));
+        if (isLiked) {
+            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart_full);
+            holder.ivLikeIcon.setColorFilter(Color.RED);
+        } else {
+            holder.ivLikeIcon.setImageResource(R.drawable.ic_heart_empty);
+            holder.ivLikeIcon.setColorFilter(Color.parseColor("#03124B"));
+        }
+    }
+
     private String getTimeAgo(com.google.firebase.Timestamp timestamp) {
         if (timestamp == null) return "Just now";
-
         long time = timestamp.getSeconds() * 1000;
         long now = System.currentTimeMillis();
         long diff = now - time;
-
         if (diff < 60000) return "Just now";
         if (diff < 3600000) return (diff / 60000) + "m ago";
         if (diff < 86400000) return (diff / 3600000) + "h ago";
-
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
         return sdf.format(new Date(time));
     }
 
     private void showDeleteDialog(String postId, int position) {
-        new AlertDialog.Builder(context)
-                .setTitle("מחיקת פוסט")
-                .setMessage("בטוח שאת רוצה למחוק את הפוסט הזה?")
+        new AlertDialog.Builder(context).setTitle("מחיקת פוסט").setMessage("בטוח שאת רוצה למחוק?")
                 .setPositiveButton("מחק", (dialog, which) -> {
-                    FirebaseFirestore.getInstance().collection("Posts").document(postId)
-                            .delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(context, "הפוסט נמחק", Toast.LENGTH_SHORT).show();
-                            });
-                })
-                .setNegativeButton("ביטול", null)
-                .show();
+                    FirebaseFirestore.getInstance().collection("posts").document(postId).delete();
+                }).setNegativeButton("ביטול", null).show();
     }
 
     private void handleLikeClick(Post post, String userId) {
         if (post.getPostId() == null) return;
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         if (post.getLikedBy().contains(userId)) {
-            db.collection("Posts").document(post.getPostId()).update("likedBy", FieldValue.arrayRemove(userId));
+            db.collection("posts").document(post.getPostId()).update("likedBy", FieldValue.arrayRemove(userId));
         } else {
-            db.collection("Posts").document(post.getPostId()).update("likedBy", FieldValue.arrayUnion(userId));
+            db.collection("posts").document(post.getPostId()).update("likedBy", FieldValue.arrayUnion(userId));
         }
     }
 
@@ -159,7 +181,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             tvPostContent = itemView.findViewById(R.id.tvPostContent);
             tvLikeCount = itemView.findViewById(R.id.tvLikeCount);
             tvCommentCount = itemView.findViewById(R.id.tvCommentCount);
-            tvPostTime = itemView.findViewById(R.id.tvPostTime); // חיבור ה-ID של הזמן
+            tvPostTime = itemView.findViewById(R.id.tvPostTime);
             ivLikeIcon = itemView.findViewById(R.id.ivLikeIcon);
             btnLike = itemView.findViewById(R.id.btnLike);
             btnComment = itemView.findViewById(R.id.btnComment);

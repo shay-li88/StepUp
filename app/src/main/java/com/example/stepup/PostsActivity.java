@@ -4,16 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.stepup.utils.PostAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,31 +26,25 @@ public class PostsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_posts);
 
-        // 1. אתחול Firestore ורשימת הפוסטים
         db = FirebaseFirestore.getInstance();
         postList = new ArrayList<>();
 
-        // 2. הגדרת ה-RecyclerView (הצגת הפוסטים)
-        recyclerView = findViewById(R.id.recyclerViewPosts); // ודאי שקיים ב-XML
+        recyclerView = findViewById(R.id.recyclerViewPosts);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new PostAdapter(this, postList);
         recyclerView.setAdapter(adapter);
 
-        // 3. כפתור הוספת פוסט (Add Post) -
-        Button btnAddPost = findViewById(R.id.btnAddPostHeader); // ודאי שקיים ב-XML
+        Button btnAddPost = findViewById(R.id.btnAddPostHeader);
         btnAddPost.setOnClickListener(v -> {
             startActivity(new Intent(PostsActivity.this, AddPostsActivity.class));
         });
 
-        // 4. טעינת הנתונים מ-Firestore
         loadPostsFromFirestore();
-
-        // 5. ניווט תחתון (הקוד המקורי שלך)
         setupBottomNavigation();
     }
 
     private void loadPostsFromFirestore() {
-        db.collection("Posts")
+        db.collection("posts") // וודאי שזה posts באות קטנה
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
@@ -63,11 +54,12 @@ public class PostsActivity extends AppCompatActivity {
 
                     if (value != null) {
                         postList.clear();
-                        // במקום toObjects, אנחנו עוברים על כל מסמך ידנית כדי לשלוף את ה-ID
                         for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                             Post post = doc.toObject(Post.class);
                             if (post != null) {
-                                post.setPostId(doc.getId()); // כאן אנחנו מחברים את ה-ID מה-Firebase לאובייקט!
+                                // השורה הכי חשובה!!! בלי זה התגובות והמחיקה לא יעבדו
+                                post.setPostId(doc.getId());
+
                                 postList.add(post);
                             }
                         }
@@ -84,14 +76,12 @@ public class PostsActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_posts) return true;
-
             if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
             else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
             else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
-
             overridePendingTransition(0, 0);
-            finish(); // סוגר את האקטיביטי הנוכחי כדי שלא יצטברו בזיכרון
+            finish();
             return true;
         });
     }
