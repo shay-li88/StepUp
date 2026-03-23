@@ -15,6 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class StrengthActivity extends AppCompatActivity {
@@ -63,35 +64,46 @@ public class StrengthActivity extends AppCompatActivity {
         setupSelection(new Button[]{btnUpper, btnLower, btnFull}, btn -> selectedType = btn.getText().toString());
 
         // --- לוגיקת שמירה ל-Firestore ומעבר מסך ---
-        btnGo.setOnClickListener(v -> {
-            String fullType = "Strength - " + selectedType;
-            String diff = selectedDifficulty;
-            int time = timePicker.getValue();
-            String notes = etNotes.getText().toString();
+        btnGo.setOnClickListener(v -> saveStrengthWorkout());
+    }
 
-            // הגדרת מרחק 0.0 כברירת מחדל לאימון כוח
-            double distance = 0.0;
+    private void saveStrengthWorkout() {
+        String fullType = "Strength - " + selectedType;
+        String diff = selectedDifficulty;
+        int time = timePicker.getValue();
+        String notes = etNotes.getText().toString();
+        double distance = 0.0;
 
-            // 1. יצירת אובייקט האימון עם 5 פרמטרים (כולל distance)
-            Workout newWorkout = new Workout(fullType, diff, time, notes, distance);
+        // --- התיקון: השגת ה-ID של המשתמש המחובר ---
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) {
+            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            // 2. שמירה ל-Firestore
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("Workouts").add(newWorkout)
-                    .addOnSuccessListener(documentReference -> {
-                        Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
-                        Toast.makeText(StrengthActivity.this, "Strength workout saved!", Toast.LENGTH_SHORT).show();
+        // 1. יצירת אובייקט האימון
+        Workout newWorkout = new Workout(fullType, diff, time, notes, distance);
 
-                        // 3. מעבר למסך רשימת האימונים
-                        Intent intent = new Intent(StrengthActivity.this, MyWorkoutsActivity.class);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error adding document", e);
-                        Toast.makeText(StrengthActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-        });
+        // 2. עדכון ה-userId וה-Timestamp (קריטי לסינון ומיון)
+        newWorkout.setUserId(currentUserId);
+        newWorkout.setTimestamp(com.google.firebase.Timestamp.now());
+
+        // 3. שמירה ל-Firestore (W גדולה - Workouts)
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("Workouts").add(newWorkout)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
+                    Toast.makeText(StrengthActivity.this, "Strength workout saved!", Toast.LENGTH_SHORT).show();
+
+                    // 4. מעבר למסך רשימת האימונים
+                    Intent intent = new Intent(StrengthActivity.this, MyWorkoutsActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error adding document", e);
+                    Toast.makeText(StrengthActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void setupSelection(Button[] group, OnSelectionListener listener) {
@@ -106,10 +118,11 @@ public class StrengthActivity extends AppCompatActivity {
 
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
-            b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#4A148C")); // סגול כהה
+            if (b != null) {
+                b.setBackgroundResource(android.R.color.transparent);
+                b.setTextColor(Color.parseColor("#4A148C")); // סגול כהה
+            }
         }
-        // שימוש ב-drawable הסגול שביקשת
         selected.setBackgroundResource(R.drawable.strength_selected);
         selected.setTextColor(Color.WHITE);
     }

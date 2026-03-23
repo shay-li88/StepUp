@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RunningActivity extends AppCompatActivity {
@@ -49,46 +50,57 @@ public class RunningActivity extends AppCompatActivity {
         setupDifficulty(btnIntense);
 
         // כפתור שמירה ושליחה
-        btnGo.setOnClickListener(v -> {
-            // 1. איסוף הנתונים
-            String type = "Running";
-            String diff = selectedDifficulty;
-            int time = timePicker.getValue();
-            double distance = (double) distancePicker.getValue(); // שליפת המרחק מהגליל
-            String notes = etNotes.getText().toString();
+        btnGo.setOnClickListener(v -> saveRunningWorkout());
+    }
 
-            if (diff == null || diff.isEmpty()) {
-                Toast.makeText(RunningActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    private void saveRunningWorkout() {
+        // 1. איסוף הנתונים
+        String type = "Running";
+        String diff = selectedDifficulty;
+        int time = timePicker.getValue();
+        double distance = (double) distancePicker.getValue();
+        String notes = etNotes.getText().toString();
 
-            // 2. יצירת אובייקט האימון המעודכן (עם 5 פרמטרים כולל distance)
-            Workout newWorkout = new Workout(type, diff, time, notes, distance);
+        if (diff == null || diff.isEmpty()) {
+            Toast.makeText(RunningActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            // 3. שמירה ל-Firestore
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // --- התיקון: השגת ה-ID של המשתמש המחובר ---
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) {
+            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            db.collection("Workouts").add(newWorkout)
-                    .addOnSuccessListener(documentReference -> {
-                        Log.d("RunningActivity", "Workout saved with ID: " + documentReference.getId());
-                        Toast.makeText(RunningActivity.this, "Workout saved successfully!", Toast.LENGTH_SHORT).show();
+        // 2. יצירת אובייקט האימון
+        Workout newWorkout = new Workout(type, diff, time, notes, distance);
 
-                        // מעבר למסך רשימת האימונים
-                        Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.w("RunningActivity", "Error adding document", e);
-                        Toast.makeText(RunningActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-        });
+        // 3. עדכון ה-userId וה-Timestamp (קריטי להפרדה בין משתמשים)
+        newWorkout.setUserId(currentUserId);
+        newWorkout.setTimestamp(com.google.firebase.Timestamp.now());
+
+        // 4. שמירה ל-Firestore (W גדולה - Workouts)
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("Workouts").add(newWorkout)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("RunningActivity", "Workout saved with ID: " + documentReference.getId());
+                    Toast.makeText(RunningActivity.this, "Workout saved successfully!", Toast.LENGTH_SHORT).show();
+
+                    // מעבר למסך רשימת האימונים
+                    Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.w("RunningActivity", "Error adding document", e);
+                    Toast.makeText(RunningActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void setupDifficulty(Button clickedBtn) {
         clickedBtn.setOnClickListener(v -> {
             resetButtons();
-            // שימוש בטורקיז לפי ה-drawable שלך
             clickedBtn.setBackgroundResource(R.drawable.selected_difficulty);
             clickedBtn.setTextColor(Color.WHITE);
             selectedDifficulty = clickedBtn.getText().toString();
@@ -98,8 +110,10 @@ public class RunningActivity extends AppCompatActivity {
     private void resetButtons() {
         Button[] btns = {btnEasy, btnMedium, btnIntense};
         for (Button b : btns) {
-            b.setBackgroundResource(android.R.color.transparent);
-            b.setTextColor(Color.parseColor("#2D6A4F")); // ירוק כהה
+            if (b != null) {
+                b.setBackgroundResource(android.R.color.transparent);
+                b.setTextColor(Color.parseColor("#2D6A4F")); // ירוק כהה
+            }
         }
     }
 }
