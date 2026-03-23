@@ -53,10 +53,18 @@ public class AddPostsActivity extends AppCompatActivity {
             return;
         }
 
+        // קביעת שם המשתמש (Display Name או חלק מהאימייל)
+        String userName = user.getDisplayName();
+        if (userName == null || userName.isEmpty()) {
+            String email = user.getEmail();
+            if (email != null) userName = email.split("@")[0];
+            else userName = "Anonymous";
+        }
+
         // הכנת הנתונים למשלוח
         Map<String, Object> postData = new HashMap<>();
-        postData.put("userId", user.getUid()); // ה-ID הנכון לסינון ב-"My Posts"
-        postData.put("userName", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail());
+        postData.put("userId", user.getUid());
+        postData.put("userName", userName);
         postData.put("title", title);
         postData.put("content", content);
         postData.put("timestamp", com.google.firebase.Timestamp.now());
@@ -70,9 +78,7 @@ public class AddPostsActivity extends AppCompatActivity {
             postData.put("hasWorkout", false);
         }
 
-        // --- התיקון הקריטי: משתמשים ב-"posts" (אותיות קטנות) ---
-        // וודאי שגם בדף "הפוסטים של כולם" (FeedActivity/MainActivity)
-        // הקוד מושך מהאוסף שנקרא "posts"
+        // שימוש ב-"posts" באות קטנה להתאמה לכל שאר האפליקציה
         db.collection("posts").add(postData)
                 .addOnSuccessListener(doc -> {
                     Log.d("AddPost", "Post shared successfully in 'posts' collection");

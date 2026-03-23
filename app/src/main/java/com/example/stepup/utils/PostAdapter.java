@@ -54,11 +54,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvPostContent.setText(post.getContent());
         holder.tvPostTime.setText(getTimeAgo(post.getTimestamp()));
 
-        // --- תיקון ספירת תגובות (שימוש ב-"Posts" עם P גדולה) ---
+        // --- תיקון ספירת תגובות (חזרה ל-posts בכתב קטן) ---
         if (post.getPostId() != null) {
-            FirebaseFirestore.getInstance().collection("Posts") // תיקון ל-P גדולה
+            FirebaseFirestore.getInstance().collection("posts") // שונה ל-p קטנה
                     .document(post.getPostId())
-                    .collection("Comments") // ודאי שזה תואם למה שכתבת ב-CommentsSheet
+                    .collection("comments") // שונה ל-c קטנה
                     .addSnapshotListener((value, error) -> {
                         if (value != null) {
                             holder.tvCommentCount.setText(value.size() + " Comments");
@@ -101,16 +101,22 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.btnLike.setOnClickListener(v -> {
             if (post.getPostId() == null) return;
 
-            // עדכון מקומי מהיר ב-UI (כדי שהמשתמש לא יחכה לשרת)
+            // 1. עדכון מקומי ב-UI
             if (post.getLikedBy().contains(currentUserId)) {
                 post.getLikedBy().remove(currentUserId);
                 updateLikeUI(holder, false, post.getLikedBy().size());
-                FirebaseFirestore.getInstance().collection("Posts").document(post.getPostId())
+
+                // 2. עדכון ב-Firebase - שונה ל-posts בכתב קטן!
+                FirebaseFirestore.getInstance().collection("posts")
+                        .document(post.getPostId())
                         .update("likedBy", FieldValue.arrayRemove(currentUserId));
             } else {
                 post.getLikedBy().add(currentUserId);
                 updateLikeUI(holder, true, post.getLikedBy().size());
-                FirebaseFirestore.getInstance().collection("Posts").document(post.getPostId())
+
+                // עדכון ב-Firebase - שונה ל-posts בכתב קטן!
+                FirebaseFirestore.getInstance().collection("posts")
+                        .document(post.getPostId())
                         .update("likedBy", FieldValue.arrayUnion(currentUserId));
             }
         });

@@ -66,7 +66,8 @@ public class CommentsSheet extends BottomSheetDialogFragment {
     }
 
     private void loadComments() {
-        db.collection("Posts").document(postId).collection("Comments")
+        // שינוי ל-posts ו-comments באותיות קטנות
+        db.collection("posts").document(postId).collection("comments")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (value != null) {
@@ -78,12 +79,12 @@ public class CommentsSheet extends BottomSheetDialogFragment {
     }
 
     private void sendComment(String text, EditText etComment) {
-        // שליפת שם המשתמש המחובר (כדי שלא יהיה "User")
         String userName = "Anonymous";
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
             if (userName == null || userName.isEmpty()) {
-                userName = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                if (email != null) userName = email.split("@")[0];
             }
         }
 
@@ -92,14 +93,14 @@ public class CommentsSheet extends BottomSheetDialogFragment {
         commentData.put("commentText", text);
         commentData.put("timestamp", com.google.firebase.Timestamp.now());
 
-        // 1. הוספת התגובה לאוסף התגובות של הפוסט
-        db.collection("Posts").document(postId).collection("Comments")
+        // שינוי ל-posts ו-comments באותיות קטנות בשמירה
+        db.collection("posts").document(postId).collection("comments")
                 .add(commentData)
                 .addOnSuccessListener(documentReference -> {
                     etComment.setText("");
 
-                    // 2. עדכון מונה התגובות בפוסט הראשי ב-1 (התיקון החשוב!)
-                    db.collection("Posts").document(postId)
+                    // עדכון מונה התגובות בפוסט הראשי (גם כאן ב-posts קטן)
+                    db.collection("posts").document(postId)
                             .update("commentCount", FieldValue.increment(1));
                 });
     }

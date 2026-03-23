@@ -44,7 +44,8 @@ public class PostsActivity extends AppCompatActivity {
     }
 
     private void loadPostsFromFirestore() {
-        db.collection("posts") // וודאי שזה posts באות קטנה
+        // שימוש ב-"posts" באות קטנה להתאמה מלאה ל-DB
+        db.collection("posts")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
@@ -57,9 +58,8 @@ public class PostsActivity extends AppCompatActivity {
                         for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                             Post post = doc.toObject(Post.class);
                             if (post != null) {
-                                // השורה הכי חשובה!!! בלי זה התגובות והמחיקה לא יעבדו
+                                // שמירת ה-ID של המסמך בתוך האובייקט (קריטי ללייקים ותגובות)
                                 post.setPostId(doc.getId());
-
                                 postList.add(post);
                             }
                         }
