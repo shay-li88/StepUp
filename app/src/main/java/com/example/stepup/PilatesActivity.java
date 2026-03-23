@@ -76,7 +76,7 @@ public class PilatesActivity extends AppCompatActivity {
                         Toast.makeText(PilatesActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
 
                         // מעבר למסך רשימת האימונים
-                        Intent intent = new Intent(this, WorkoutsActivity.class);
+                        Intent intent = new Intent(this, MyWorkoutsActivity.class);
                         startActivity(intent);
                         finish();
                     })

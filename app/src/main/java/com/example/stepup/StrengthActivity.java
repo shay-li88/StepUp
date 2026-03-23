@@ -83,7 +83,7 @@ public class StrengthActivity extends AppCompatActivity {
                         Toast.makeText(StrengthActivity.this, "Strength workout saved!", Toast.LENGTH_SHORT).show();
 
                         // 3. מעבר למסך רשימת האימונים
-                        Intent intent = new Intent(StrengthActivity.this, WorkoutsActivity.class);
+                        Intent intent = new Intent(StrengthActivity.this, MyWorkoutsActivity.class);
                         startActivity(intent);
                         finish();
                     })

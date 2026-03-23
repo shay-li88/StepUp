@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.EdgeToEdge;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class CardioActivity extends AppCompatActivity {
@@ -23,7 +24,7 @@ public class CardioActivity extends AppCompatActivity {
     private Button btnLight, btnModerate, btnHIIT, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedDifficulty = ""; // התחלה ריקה כדי לוודא בחירה
+    private String selectedDifficulty = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,6 @@ public class CardioActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cardio);
 
-        // טיפול במרווחי מערכת
         View mainView = findViewById(android.R.id.content);
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
@@ -41,7 +41,6 @@ public class CardioActivity extends AppCompatActivity {
             });
         }
 
-        // --- אתחול רכיבים ---
         btnLight = findViewById(R.id.btnLight);
         btnModerate = findViewById(R.id.btnModerate);
         btnHIIT = findViewById(R.id.btnHIIT);
@@ -55,49 +54,54 @@ public class CardioActivity extends AppCompatActivity {
             timePicker.setValue(35);
         }
 
-        // הגדרת לוגיקת הכפתורים
         setupLevelButton(btnLight);
         setupLevelButton(btnModerate);
         setupLevelButton(btnHIIT);
 
-        // --- לוגיקת שמירה ומעבר מסך ---
         if (btnGo != null) {
-            btnGo.setOnClickListener(v -> {
-                String type = "Cardio";
-                String diff = selectedDifficulty;
-                int time = (timePicker != null) ? timePicker.getValue() : 0;
-                String notes = (etNotes != null) ? etNotes.getText().toString() : "";
-
-                // באימון Cardio אין מרחק, לכן נשלח 0.0
-                double distance = 0.0;
-
-                // בדיקה שנבחרה רמה
-                if (diff.isEmpty()) {
-                    Toast.makeText(CardioActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // 1. יצירת אובייקט האימון עם 5 פרמטרים (כולל distance)
-                Workout newWorkout = new Workout(type, diff, time, notes, distance);
-
-                // 2. שמירה ל-Firestore
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                db.collection("Workouts").add(newWorkout)
-                        .addOnSuccessListener(documentReference -> {
-                            Log.d("CardioActivity", "Saved with ID: " + documentReference.getId());
-                            Toast.makeText(CardioActivity.this, "Workout saved!", Toast.LENGTH_SHORT).show();
-
-                            // 3. מעבר למסך רשימת האימונים
-                            Intent intent = new Intent(CardioActivity.this, WorkoutsActivity.class);
-                            startActivity(intent);
-                            finish();
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e("CardioActivity", "Error saving", e);
-                            Toast.makeText(CardioActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-            });
+            btnGo.setOnClickListener(v -> publishWorkout());
         }
+    }
+
+    private void publishWorkout() {
+        String type = "Cardio";
+        String diff = selectedDifficulty;
+        int time = (timePicker != null) ? timePicker.getValue() : 0;
+        String notes = (etNotes != null) ? etNotes.getText().toString() : "";
+        double distance = 0.0;
+
+        if (diff.isEmpty()) {
+            Toast.makeText(this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) {
+            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. יצירת האובייקט
+        Workout newWorkout = new Workout(type, diff, time, notes, distance);
+
+        // 2. עדכון ה-userId (קריטי להופעה ב-MyWorkouts)
+        newWorkout.setUserId(currentUserId);
+
+        // 3. שמירה ל-Firestore לאוסף "Workouts" (אותיות גדולות)
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // בתוך פונקציית השמירה
+        db.collection("Workouts").add(newWorkout) // W גדולה
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("CardioActivity", "Saved successfully!");
+                    Toast.makeText(this, "Workout saved!", Toast.LENGTH_SHORT).show();
+
+                    startActivity(new Intent(this, MyWorkoutsActivity.class));
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("CardioActivity", "Error saving", e);
+                    Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void setupLevelButton(Button btn) {
@@ -110,7 +114,6 @@ public class CardioActivity extends AppCompatActivity {
     }
 
     private void selectButton(Button btn) {
-        // ודאי שה-drawable הזה קיים אצלך
         btn.setBackgroundResource(R.drawable.cardio_btn_selected);
         btn.setTextColor(Color.WHITE);
     }
@@ -120,7 +123,7 @@ public class CardioActivity extends AppCompatActivity {
         for (Button b : btns) {
             if (b != null) {
                 b.setBackgroundResource(android.R.color.transparent);
-                b.setTextColor(Color.parseColor("#C2185B")); // צבע ורוד כהה ל-Cardio
+                b.setTextColor(Color.parseColor("#C2185B"));
             }
         }
     }

@@ -2,7 +2,6 @@ package com.example.stepup;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +32,7 @@ public class ChallengesActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_challenges) return true;
 
-            if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
             else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
             else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));

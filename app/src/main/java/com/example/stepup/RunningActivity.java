@@ -74,7 +74,7 @@ public class RunningActivity extends AppCompatActivity {
                         Toast.makeText(RunningActivity.this, "Workout saved successfully!", Toast.LENGTH_SHORT).show();
 
                         // מעבר למסך רשימת האימונים
-                        Intent intent = new Intent(RunningActivity.this, WorkoutsActivity.class);
+                        Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
                         startActivity(intent);
                         finish();
                     })

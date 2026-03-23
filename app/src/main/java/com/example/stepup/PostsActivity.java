@@ -76,7 +76,7 @@ public class PostsActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_posts) return true;
-            if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
             else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
             else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));

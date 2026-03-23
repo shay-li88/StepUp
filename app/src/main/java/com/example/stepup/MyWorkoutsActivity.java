@@ -22,7 +22,7 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkoutsActivity extends AppCompatActivity {
+public class MyWorkoutsActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private WorkoutAdapter adapter;
@@ -35,7 +35,7 @@ public class WorkoutsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_workouts);
+        setContentView(R.layout.activity_my_workouts);
 
         View mainView = findViewById(R.id.main);
         if (mainView != null) {
@@ -71,16 +71,24 @@ public class WorkoutsActivity extends AppCompatActivity {
     }
 
     private void loadWorkoutsFromFirestore() {
+        String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) return;
+
+        // חובה שיהיה תואם לשמירה: "Workouts"
         db.collection("Workouts")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     fullWorkoutList.clear();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots) {
                         Workout workout = document.toObject(Workout.class);
                         if (workout != null) fullWorkoutList.add(workout);
                     }
                     filterWorkouts("All");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("MyWorkouts", "Error: " + e.getMessage());
                 });
     }
 

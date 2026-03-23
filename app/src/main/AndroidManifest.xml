@@ -32,7 +32,7 @@
             android:name=".PostsActivity"
             android:exported="false" />
         <activity
-            android:name=".WorkoutsActivity"
+            android:name=".MyWorkoutsActivity"
             android:exported="false" />
         <activity
             android:name=".utils.PilatesActivity"

@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -46,7 +46,7 @@ public class FeedActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) return true;
-            if (id == R.id.nav_workouts) startActivity(new Intent(this, WorkoutsActivity.class));
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
             else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
             else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
