@@ -11,8 +11,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class PilatesActivity extends AppCompatActivity {
 
@@ -21,6 +27,7 @@ public class PilatesActivity extends AppCompatActivity {
     private EditText etNotes;
     private String selectedDifficulty = "Beginner";
     private String selectedFocus = "Core";
+    private FirebaseFirestore db;
 
     private static final String TAG = "PilatesActivity";
 
@@ -28,6 +35,8 @@ public class PilatesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pilates);
+
+        db = FirebaseFirestore.getInstance();
 
         // קישור רכיבים
         btnBeginner = findViewById(R.id.btnBeginner);
@@ -54,41 +63,25 @@ public class PilatesActivity extends AppCompatActivity {
     }
 
     private void savePilatesWorkout() {
-        // 1. איסוף הנתונים מהשדות
-        String type = "Pilates " + selectedFocus;
-        String diff = selectedDifficulty;
-        int time = timePicker.getValue();
-        String notes = etNotes.getText().toString();
-        double distance = 0.0;
-
-        // --- התיקון: השגת ה-ID של המשתמש המחובר ---
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
             Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 2. בדיקה שהמשתמש בחר הכל (הוספת הגנה)
-        if (diff.isEmpty() || selectedFocus.isEmpty()) {
-            Toast.makeText(this, "Please select level and focus", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // 3. יצירת אובייקט האימון
-        Workout newWorkout = new Workout(type, diff, time, notes, distance);
-
-        // 4. עדכון ה-userId וה-Timestamp (קריטי!)
+        Workout newWorkout = new Workout("Pilates " + selectedFocus, selectedDifficulty, timePicker.getValue(), etNotes.getText().toString(), 0.0);
         newWorkout.setUserId(currentUserId);
-        newWorkout.setTimestamp(com.google.firebase.Timestamp.now());
+        newWorkout.setTimestamp(Timestamp.now());
 
-        // 5. שמירה ל-Firestore (W גדולה - Workouts)
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("Workouts").add(newWorkout)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
-                    Toast.makeText(PilatesActivity.this, "Log saved successfully!", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
 
-                    // מעבר למסך רשימת האימונים
+                    // --- עדכון סטטיסטיקות משתמש (כוכבים וסטריק חכם) ---
+                    updateUserStats(currentUserId);
+
+                    Toast.makeText(PilatesActivity.this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
+
                     Intent intent = new Intent(this, MyWorkoutsActivity.class);
                     startActivity(intent);
                     finish();
@@ -97,6 +90,42 @@ public class PilatesActivity extends AppCompatActivity {
                     Log.w(TAG, "Error adding document", e);
                     Toast.makeText(PilatesActivity.this, "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+    }
+
+    // הפונקציה המעודכנת לעדכון כוכבים וסטריק בצורה חכמה
+    private void updateUserStats(String uid) {
+        DocumentReference userRef = db.collection("users").document(uid);
+
+        userRef.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                // 1. תמיד מוסיפים 3 כוכבים
+                userRef.update("totalStars", FieldValue.increment(3));
+
+                // 2. בדיקה אם הסטריק כבר עודכן היום
+                Timestamp lastUpdateTS = doc.getTimestamp("lastStreakUpdate");
+                Date today = new Date();
+
+                if (lastUpdateTS == null || !isSameDay(lastUpdateTS.toDate(), today)) {
+                    userRef.update(
+                            "streak", FieldValue.increment(1),
+                            "lastStreakUpdate", new Timestamp(today)
+                    );
+                    Log.d("Points", "Pilates: Streak incremented!");
+                } else {
+                    Log.d("Points", "Pilates: Streak already updated today.");
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("Points", "Error fetching user", e));
+    }
+
+    // בדיקה אם שני תאריכים הם באותו יום
+    private boolean isSameDay(Date d1, Date d2) {
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(d1);
+        cal2.setTime(d2);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
     private void setupSelection(Button[] group, OnSelectionListener listener) {

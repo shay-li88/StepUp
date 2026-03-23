@@ -11,8 +11,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class RunningActivity extends AppCompatActivity {
 
@@ -20,11 +26,15 @@ public class RunningActivity extends AppCompatActivity {
     private NumberPicker timePicker, distancePicker;
     private EditText etNotes;
     private String selectedDifficulty = "Easy";
+    private FirebaseFirestore db;
+    private static final String TAG = "RunningActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_running);
+
+        db = FirebaseFirestore.getInstance();
 
         // חיבור ה-ID מה-XML
         btnEasy = findViewById(R.id.btnEasy);
@@ -54,48 +64,70 @@ public class RunningActivity extends AppCompatActivity {
     }
 
     private void saveRunningWorkout() {
-        // 1. איסוף הנתונים
-        String type = "Running";
-        String diff = selectedDifficulty;
-        int time = timePicker.getValue();
-        double distance = (double) distancePicker.getValue();
-        String notes = etNotes.getText().toString();
-
-        if (diff == null || diff.isEmpty()) {
-            Toast.makeText(RunningActivity.this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // --- התיקון: השגת ה-ID של המשתמש המחובר ---
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
             Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 2. יצירת אובייקט האימון
-        Workout newWorkout = new Workout(type, diff, time, notes, distance);
-
-        // 3. עדכון ה-userId וה-Timestamp (קריטי להפרדה בין משתמשים)
+        Workout newWorkout = new Workout("Running", selectedDifficulty, timePicker.getValue(), etNotes.getText().toString(), (double) distancePicker.getValue());
         newWorkout.setUserId(currentUserId);
-        newWorkout.setTimestamp(com.google.firebase.Timestamp.now());
+        newWorkout.setTimestamp(Timestamp.now());
 
-        // 4. שמירה ל-Firestore (W גדולה - Workouts)
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // שמירת האימון ב-Workouts
         db.collection("Workouts").add(newWorkout)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d("RunningActivity", "Workout saved with ID: " + documentReference.getId());
-                    Toast.makeText(RunningActivity.this, "Workout saved successfully!", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
 
-                    // מעבר למסך רשימת האימונים
+                    // --- עדכון סטטיסטיקות משתמש (כוכבים וסטריק חכם) ---
+                    updateUserStats(currentUserId);
+
+                    Toast.makeText(RunningActivity.this, "Workout saved!", Toast.LENGTH_SHORT).show();
+
                     Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
                     startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Log.w("RunningActivity", "Error adding document", e);
+                    Log.w(TAG, "Error adding document", e);
                     Toast.makeText(RunningActivity.this, "Error saving: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+    }
+
+    // הפונקציה המעודכנת לעדכון כוכבים וסטריק
+    private void updateUserStats(String uid) {
+        DocumentReference userRef = db.collection("users").document(uid);
+
+        userRef.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                // 1. תמיד מוסיפים 3 כוכבים על כל אימון
+                userRef.update("totalStars", FieldValue.increment(3));
+
+                // 2. לוגיקה לסטריק: רק אם זה האימון הראשון היום
+                Timestamp lastUpdateTS = doc.getTimestamp("lastStreakUpdate");
+                Date today = new Date();
+
+                if (lastUpdateTS == null || !isSameDay(lastUpdateTS.toDate(), today)) {
+                    userRef.update(
+                            "streak", FieldValue.increment(1),
+                            "lastStreakUpdate", new Timestamp(today)
+                    );
+                    Log.d("Points", "Streak incremented for today!");
+                } else {
+                    Log.d("Points", "Streak already updated today, skipping increment.");
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("Points", "Error fetching user for update", e));
+    }
+
+    // פונקציית עזר לבדיקה אם מדובר באותו יום קלנדרי
+    private boolean isSameDay(Date d1, Date d2) {
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(d1);
+        cal2.setTime(d2);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
     private void setupDifficulty(Button clickedBtn) {

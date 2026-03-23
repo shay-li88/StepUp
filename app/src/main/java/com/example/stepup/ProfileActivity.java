@@ -3,6 +3,7 @@ package com.example.stepup;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,29 +31,22 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // 1. אתחול כל ה-Views (הטקסטים והכפתורים)
-        initViews();
-
-        // 2. אתחול Firebase ושליפת נתונים (שם, סטריק, גיל וכו')
         db = FirebaseFirestore.getInstance();
+
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            initViews();
             loadUserData();
+            loadWorkoutStats(); // הפונקציה המעודכנת שמסנכרנת כוכבים
+            setupChart();
         }
 
-        // 3. הגדרת הגרף הצבעוני
-        setupChart();
-
-        // 4. קישור כפתור "Edit Details" למסך העריכה
         btnEditProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(ProfileActivity.this, EditProfileActivity.class));
         });
 
-        // 5. התיקון: קישור כפתור "My Posts" למסך הפוסטים החדש
         btnMyPosts.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, MyPostsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(ProfileActivity.this, MyPostsActivity.class));
         });
     }
 
@@ -73,17 +67,16 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void loadUserData() {
         db.collection("users").document(userId).addSnapshotListener((doc, e) -> {
+            if (e != null) return;
             if (doc != null && doc.exists()) {
-                // שם המשתמש
                 tvUserName.setText(doc.getString("name") != null ? doc.getString("name") : "User");
 
-                // נתונים עליונים (דואג שזה לא יהיה 0 אם יש נתון)
+                // סטטיסטיקות מהמסמך
                 tvStreak.setText(String.valueOf(doc.getLong("streak") != null ? doc.getLong("streak") : 0));
-                tvStars.setText(String.valueOf(doc.getLong("totalStars") != null ? doc.getLong("totalStars") : 0));
-                tvLogs.setText(String.valueOf(doc.getLong("logs") != null ? doc.getLong("logs") : 0));
-                tvWorkouts.setText(String.valueOf(doc.getLong("totalWorkouts") != null ? doc.getLong("totalWorkouts") : 0));
 
-                // נתוני גוף
+                // כאן אנחנו רק מציגים את ה-totalStars מהמסמך, הסנכרון קורה ב-loadWorkoutStats
+                tvStars.setText(String.valueOf(doc.getLong("totalStars") != null ? doc.getLong("totalStars") : 0));
+
                 Long age = doc.getLong("age");
                 Double h = doc.getDouble("height");
                 Double w = doc.getDouble("weight");
@@ -97,6 +90,32 @@ public class ProfileActivity extends AppCompatActivity {
                 btnEditProfile.setText(age != null && age > 0 ? "Edit Details" : "Add Details");
             }
         });
+    }
+
+    private void loadWorkoutStats() {
+        // ספירה חיה של כמות האימונים וחישוב כוכבים רטרואקטיבי
+        db.collection("Workouts")
+                .whereEqualTo("userId", userId)
+                .addSnapshotListener((querySnap, e) -> {
+                    if (e != null) {
+                        Log.e("ProfileActivity", "Error counting workouts", e);
+                        return;
+                    }
+                    if (querySnap != null) {
+                        int workoutCount = querySnap.size();
+                        int calculatedStars = workoutCount * 3; // כל אימון שווה 3 כוכבים
+
+                        // 1. עדכון התצוגה במסך
+                        tvWorkouts.setText(String.valueOf(workoutCount));
+                        tvLogs.setText(String.valueOf(workoutCount));
+                        tvStars.setText(String.valueOf(calculatedStars));
+
+                        // 2. סנכרון לבסיס הנתונים - מעדכן את השדה totalStars במסמך המשתמש
+                        db.collection("users").document(userId)
+                                .update("totalStars", calculatedStars)
+                                .addOnFailureListener(err -> Log.e("ProfileActivity", "Failed to sync stars", err));
+                    }
+                });
     }
 
     private void setupChart() {
