@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-
+    implementation("androidx.lifecycle:lifecycle-process:2.8.3")
     // הספרייה של הגרפים
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 

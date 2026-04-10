@@ -1,13 +1,19 @@
 package com.example.stepup;
 
+import android.Manifest; // נוסף
 import android.content.Intent;
+import android.content.pm.PackageManager; // נוסף
+import android.os.Build; // נוסף
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher; // נוסף
+import androidx.activity.result.contract.ActivityResultContracts; // נוסף
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat; // נוסף
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -30,6 +36,16 @@ public class FeedActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
+    // --- חדש: Launcher לבקשת הרשאה להתראות ---
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    Log.d("Feed", "Notification permission granted");
+                } else {
+                    Log.d("Feed", "Notification permission denied");
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,8 +55,6 @@ public class FeedActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-        // תיקון ה-Padding עבור מסכים עם מגרעת (Notch)
-        // השתמשתי ב-main_layout שנוסיף ל-XML מיד
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -52,6 +66,9 @@ public class FeedActivity extends AppCompatActivity {
         displayUserData();
         checkAndResetStreak();
         setupBottomNavigation();
+
+        // --- חדש: קריאה לבקשת ההרשאה ---
+        askNotificationPermission();
     }
 
     private void initViews() {
@@ -62,6 +79,16 @@ public class FeedActivity extends AppCompatActivity {
         btnStrength = findViewById(R.id.btnStrength);
         btnCardio = findViewById(R.id.btnCardio);
         btnPilates = findViewById(R.id.btnPilates);
+    }
+
+    // --- חדש: פעולה לבדיקת ובקשת הרשאה ---
+    private void askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
     }
 
     private void displayUserData() {
@@ -97,26 +124,19 @@ public class FeedActivity extends AppCompatActivity {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         DocumentSnapshot lastDoc = queryDocumentSnapshots.getDocuments().get(0);
-
-                        // --- התיקון המרכזי כאן ---
                         Object timestampObj = lastDoc.get("timestamp");
                         Date lastWorkoutDate = null;
 
                         if (timestampObj instanceof Timestamp) {
-                            // אם זה פורמט Timestamp (החדשים)
                             lastWorkoutDate = ((Timestamp) timestampObj).toDate();
                         } else if (timestampObj instanceof Long || timestampObj instanceof Double) {
-                            // אם זה פורמט Number (הישנים)
                             lastWorkoutDate = new Date(((Number) timestampObj).longValue());
                         }
 
                         if (lastWorkoutDate != null) {
                             validateStreakLogic(uid, lastWorkoutDate);
                         }
-                        // ------------------------
-
                     } else {
-                        // אם אין אימונים בכלל, לאפס ל-0
                         db.collection("users").document(uid).update("streak", 0);
                     }
                 })
@@ -128,7 +148,6 @@ public class FeedActivity extends AppCompatActivity {
         long diffInMillies = Math.abs(now.getTime() - lastWorkoutDate.getTime());
         long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
-        // אם עברו יותר מיומיים (48 שעות) מהאימון האחרון
         if (diffInDays >= 2) {
             db.collection("users").document(uid).update("streak", 0);
             Log.d("Streak", "Streak reset - more than 48 hours passed");
