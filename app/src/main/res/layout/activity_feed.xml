@@ -87,7 +87,7 @@
                 android:layout_height="70dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/white_card_bg"
-                android:backgroundTint="#C3F7CC"
+                android:backgroundTint="#A1F8B0"
                 android:gravity="center_vertical"
                 android:paddingStart="20dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏃 Running" android:textSize="20sp" android:textStyle="bold" android:textColor="#1A237E"/>
@@ -99,7 +99,7 @@
                 android:layout_height="70dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/white_card_bg"
-                android:backgroundTint="#E1BEE7"
+                android:backgroundTint="#EF9BFD"
                 android:gravity="center_vertical"
                 android:paddingStart="20dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💪 Strength" android:textSize="20sp" android:textStyle="bold" android:textColor="#1A237E"/>
@@ -111,7 +111,7 @@
                 android:layout_height="70dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/white_card_bg"
-                android:backgroundTint="#F8BBD0"
+                android:backgroundTint="#FAADC7"
                 android:gravity="center_vertical"
                 android:paddingStart="20dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🚴 Cardio" android:textSize="20sp" android:textStyle="bold" android:textColor="#1A237E"/>

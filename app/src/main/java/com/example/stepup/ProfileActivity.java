@@ -14,8 +14,12 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -93,46 +97,125 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadWorkoutStats() {
-        // ספירה חיה של כמות האימונים וחישוב כוכבים רטרואקטיבי
         db.collection("Workouts")
                 .whereEqualTo("userId", userId)
                 .addSnapshotListener((querySnap, e) -> {
-                    if (e != null) {
-                        Log.e("ProfileActivity", "Error counting workouts", e);
-                        return;
-                    }
+                    if (e != null) return;
                     if (querySnap != null) {
                         int workoutCount = querySnap.size();
-                        int calculatedStars = workoutCount * 3; // כל אימון שווה 3 כוכבים
+                        int calculatedStars = workoutCount * 3;
 
-                        // 1. עדכון התצוגה במסך
                         tvWorkouts.setText(String.valueOf(workoutCount));
                         tvLogs.setText(String.valueOf(workoutCount));
                         tvStars.setText(String.valueOf(calculatedStars));
 
-                        // 2. סנכרון לבסיס הנתונים - מעדכן את השדה totalStars במסמך המשתמש
                         db.collection("users").document(userId)
-                                .update("totalStars", calculatedStars)
-                                .addOnFailureListener(err -> Log.e("ProfileActivity", "Failed to sync stars", err));
+                                .update("totalStars", calculatedStars);
+
+                        // כאן אנחנו קוראים לעדכון הגרף עם הנתונים האמיתיים
+                        updateChartWithRealData(querySnap.getDocuments());
                     }
                 });
     }
 
-    private void setupChart() {
-        ArrayList<BarEntry> entries = new ArrayList<>();
-        entries.add(new BarEntry(0, 1.5f)); entries.add(new BarEntry(1, 2.2f));
-        entries.add(new BarEntry(2, 2.5f)); entries.add(new BarEntry(3, 3.8f));
-        entries.add(new BarEntry(4, 4.2f)); entries.add(new BarEntry(5, 5.0f));
-        entries.add(new BarEntry(6, 3.5f));
+    private void updateChartWithRealData(List<DocumentSnapshot> workouts) {
+        float[] daysTimeSum = new float[7];
+        // רשימה שתשמור את הסוג הנפוץ ביותר לכל יום
+        String[] topTypePerDay = new String[7];
+        // מפה לספירת סוגים (סוג אימון -> כמות) לכל יום בנפרד
+        ArrayList<java.util.HashMap<String, Integer>> typesCounter = new ArrayList<>();
 
-        BarDataSet dataSet = new BarDataSet(entries, "Weekly Activity");
-        dataSet.setColors(new int[]{Color.parseColor("#A5D6A7"), Color.parseColor("#F48FB1"), Color.parseColor("#90CAF9"), Color.parseColor("#B39DDB")});
-        dataSet.setDrawValues(false);
-        barChart.setData(new BarData(dataSet));
-        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}));
-        barChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
-        barChart.getAxisRight().setEnabled(false);
-        barChart.getDescription().setEnabled(false);
+        for (int i = 0; i < 7; i++) typesCounter.add(new java.util.HashMap<>());
+
+        Calendar cal = Calendar.getInstance();
+
+        for (DocumentSnapshot doc : workouts) {
+            Object timestampObj = doc.get("timestamp");
+            Date date = null;
+
+            if (timestampObj instanceof com.google.firebase.Timestamp) {
+                date = ((com.google.firebase.Timestamp) timestampObj).toDate();
+            } else if (timestampObj instanceof Long) {
+                date = new Date((Long) timestampObj);
+            }
+
+            if (date != null) {
+                cal.setTime(date);
+                int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1;
+
+                // 1. צבירת זמן (כמו שביקשת קודם)
+                Long workoutMinutes = doc.getLong("time");
+                if (workoutMinutes != null) {
+                    daysTimeSum[dayOfWeek] += workoutMinutes;
+                }
+
+                // 2. ספירת סוג האימון
+                String type = doc.getString("type");
+                if (type != null) {
+                    java.util.HashMap<String, Integer> dayMap = typesCounter.get(dayOfWeek);
+                    dayMap.put(type, dayMap.getOrDefault(type, 0) + 1);
+                }
+            }
+        }
+
+        ArrayList<BarEntry> entries = new ArrayList<>();
+        ArrayList<Integer> colors = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            entries.add(new BarEntry(i, daysTimeSum[i]));
+
+            // מציאת סוג האימון השולט באותו יום
+            String dominantType = "";
+            int maxCount = -1;
+            for (java.util.Map.Entry<String, Integer> entry : typesCounter.get(i).entrySet()) {
+                if (entry.getValue() > maxCount) {
+                    maxCount = entry.getValue();
+                    dominantType = entry.getKey();
+                }
+            }
+
+            // קביעת צבע לפי הסוג השולט (Default אפור אם אין אימונים)
+            colors.add(getColorForType(dominantType));
+        }
+
+        BarDataSet dataSet = new BarDataSet(entries, "Workout Duration (Minutes)");
+        dataSet.setColors(colors); // שימוש ברשימת הצבעים הדינמית
+
+        dataSet.setDrawValues(true);
+        BarData data = new BarData(dataSet);
+        barChart.setData(data);
+
+        String[] daysNames = new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(daysNames));
         barChart.invalidate();
+    }
+
+    // פונקציית עזר להמרת שם סוג האימון לצבע
+    private int getColorForType(String type) {
+        if (type == null) return Color.LTGRAY;
+
+        switch (type) {
+            case "Running":
+                return Color.parseColor("#75E285"); // ירוק
+            case "Pilates":
+                return Color.parseColor("#80DEEA"); // תכלת
+            case "Strength":
+                return Color.parseColor("#EF9BFDFF"); // סגול
+            case "Cardio":
+                return Color.parseColor("#F48FB1"); // ורוד
+            default:
+                return Color.parseColor("#90CAF9"); // כחול בהיר ברירת מחדל
+        }
+    }
+
+    private void setupChart() {
+        // הגדרות עיצוב כלליות לגרף (ללא נתונים עדיין)
+        barChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
+        barChart.getXAxis().setDrawGridLines(false);
+        barChart.getAxisRight().setEnabled(false);
+        barChart.getAxisLeft().setGranularity(1f); // מונע מספרים עשרוניים בציר ה-Y
+        barChart.getAxisLeft().setAxisMinimum(0f);
+        barChart.getDescription().setEnabled(false);
+        barChart.getLegend().setEnabled(false);
     }
 }
