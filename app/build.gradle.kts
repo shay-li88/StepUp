@@ -33,19 +33,33 @@ android {
 }
 
 dependencies {
-    implementation(libs.glide)
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.okhttp)
+    // ספריות כלליות
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.glide)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+
+    // ניהול חיי אפליקציה וגרפים
+    implementation("androidx.lifecycle:lifecycle-process:2.8.3")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // --- Firebase & AI Setup (השינוי המרכזי) ---
+    // 1. הגדרת ה-BOM (Bill of Materials)
+    implementation(platform(libs.firebase.bom))
+
+    // 2. שירותי Firebase (ללא גרסאות - ה-BOM דואג לזה)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation("androidx.lifecycle:lifecycle-process:2.8.3")
-    // הספרייה של הגרפים
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation(libs.firebase.ai)
+
+    // 3. ספריות עזר ל-Gemini
+    implementation(libs.guava)
+    implementation(libs.reactive.streams)
+    // ------------------------------------------
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
