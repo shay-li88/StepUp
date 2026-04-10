@@ -1,48 +1,56 @@
 package com.example.stepup;
-
-import android.Manifest; // נוסף
+import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager; // נוסף
-import android.os.Build; // נוסף
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher; // נוסף
-import androidx.activity.result.contract.ActivityResultContracts; // נוסף
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat; // נוסף
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
+import com.example.stepup.Post;
+import com.example.stepup.utils.PostAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class FeedActivity extends AppCompatActivity {
 
+    private static final String TAG = "FeedActivity";
     private TextView tvHelloUser, tvStreak, tvPoints;
     private LinearLayout btnRunning, btnStrength, btnCardio, btnPilates;
+    private ArrayList<Post> postsList;
+    private PostAdapter adapter;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    // --- חדש: Launcher לבקשת הרשאה להתראות ---
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    Log.d("Feed", "Notification permission granted");
+                    Log.d(TAG, "Notification permission granted");
                 } else {
-                    Log.d("Feed", "Notification permission denied");
+                    Log.d(TAG, "Notification permission denied");
                 }
             });
 
@@ -55,6 +63,9 @@ public class FeedActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
+        // אתחול הרשימה כדי שלא תקרוס
+        postsList = new ArrayList<>();
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -66,9 +77,51 @@ public class FeedActivity extends AppCompatActivity {
         displayUserData();
         checkAndResetStreak();
         setupBottomNavigation();
-
-        // --- חדש: קריאה לבקשת ההרשאה ---
         askNotificationPermission();
+
+        // הפעלת האזנה בזמן אמת לפוסטים
+        registerToNewPosts();
+    }
+
+    // הפונקציה החדשה לעדכונים בזמן אמת
+    private void registerToNewPosts() {
+        Log.d(TAG, "registerToNewPosts: start");
+
+        db.collection("posts")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot snapshots,
+                                        @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w(TAG, "listen:error", e);
+                            return;
+                        }
+
+                        if (snapshots != null) {
+                            for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                                switch (dc.getType()) {
+                                    case ADDED:
+                                        Log.d(TAG, "New post: " + dc.getDocument().getData());
+                                        Post post = dc.getDocument().toObject(Post.class);
+                                        // הוספה לראש הרשימה
+                                        postsList.add(0, post);
+                                        break;
+                                    case MODIFIED:
+                                        // כאן אפשר להוסיף לוגיקה לעדכון פוסט קיים אם תרצי בעתיד
+                                        break;
+                                    case REMOVED:
+                                        // כאן אפשר להוסיף לוגיקה למחיקת פוסט אם תרצי בעתיד
+                                        break;
+                                }
+                            }
+                            // עדכון האדפטר שלך כדי שהשינוי יופיע במסך
+                            if (adapter != null) {
+                                adapter.notifyDataSetChanged();
+                            }
+                        }
+                    }
+                });
     }
 
     private void initViews() {
@@ -81,7 +134,6 @@ public class FeedActivity extends AppCompatActivity {
         btnPilates = findViewById(R.id.btnPilates);
     }
 
-    // --- חדש: פעולה לבדיקת ובקשת הרשאה ---
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
