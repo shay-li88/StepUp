@@ -64,45 +64,83 @@ public class ChallengesActivity extends AppCompatActivity {
         String uid = mAuth.getUid();
         if (uid == null) return;
 
-        ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage("מנתח את האימונים שלך ובונה אתגר...");
-        pd.show();
-
-        // שליפת 5 אימונים אחרונים כדי להבין את הרמה
+        // הורדנו את ה-orderBy כרגע כדי למנוע קריסה אם לא הגדרת אינדקס ב-Firebase
         db.collection("Workouts")
                 .whereEqualTo("userId", uid)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(5)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+
+                    // 1. בדיקה אם הרשימה ריקה לגמרי
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        showNoWorkoutsMessage();
+                        return;
+                    }
+
+                    // 2. אם הגענו לכאן, יש לפחות אימון אחד!
+                    ProgressDialog pd = new ProgressDialog(this);
+                    pd.setMessage("מנתח את האימונים שלך...");
+                    pd.show();
+
                     StringBuilder workoutHistory = new StringBuilder();
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        workoutHistory.append("- ").append(doc.getString("type"))
-                                .append(" (רמה: ").append(doc.get("difficulty")).append(")\n");
+                        String type = doc.getString("type") != null ? doc.getString("type") : "אימון כללי";
+                        String diff = doc.get("difficulty") != null ? doc.get("difficulty").toString() : "לא ידוע";
+
+                        workoutHistory.append("- ").append(type)
+                                .append(" (רמה: ").append(diff).append(")\n");
                     }
 
                     generateAiChallenge(workoutHistory.toString(), pd);
                 })
                 .addOnFailureListener(e -> {
-                    pd.dismiss();
-                    generateAiChallenge("אין היסטוריית אימונים עדיין", pd);
+                    // אם בכל זאת יש שגיאה (למשל בעיית רשת)
+                    Log.e("Challenges", "Error: " + e.getMessage());
+                    Toast.makeText(this, "אופס, משהו השתבש בגישה לנתונים", Toast.LENGTH_SHORT).show();
                 });
     }
 
+    // פונקציית עזר להצגת ההודעה שביקשת
+    private void showNoWorkoutsMessage() {
+        cardResult.setVisibility(View.VISIBLE);
+        tvAiResponse.setText("עדיין לא נרשמו אימונים במערכת.\n\nכדי שאוכל לייצר לך אתגר מותאם אישית, כדאי להתחיל להתאמן או לייצר אימון חדש בדף האימונים! 💪");
+
+        // אופציונלי: שינוי הטקסט בכפתור כדי להניע אותו לפעולה
+        btnGenerate.setText("יאללה, בוא נתחיל להתאמן!");
+        btnGenerate.setOnClickListener(v -> {
+            startActivity(new Intent(this, MyWorkoutsActivity.class));
+        });
+    }
     private void generateAiChallenge(String history, ProgressDialog pd) {
-        String prompt = "הנה היסטוריית האימונים האחרונה של המשתמש:\n" + history +
-                "\nצור לו אתגר כושר שבועי מותאם אישית. " +
-                "הוסף קישור לחיפוש ביוטיוב לסרטון הדרכה מתאים. " +
-                "החזר את התשובה בצורה מעוצבת וברורה בעברית.";
+        // הוספת הנחיה לתמציתיות בריבוע (בקשת ריכוז בנקודות חשובות)
+        String prompt = "הנה היסטוריית האימונים של המשתמש:\n" + history +
+                "\nצור אתגר כושר שבועי תמציתי. הנחיות:" +
+                "\n1. בלי כוכביות (**) ובלי Markdown בכלל." +
+                "\n2. בסוף, הוסף את המשפט המדויק: 'לחץ כאן לסרטון הדרכה' ואחריו את ה-URL של יוטיוב." +
+                "\n3. ישר לעניין בעברית.";
 
         geminiManager.sendText(prompt, this, new GeminiManager.GeminiCallback() {
             @Override
             public void onSuccess(String result) {
                 pd.dismiss();
                 cardResult.setVisibility(View.VISIBLE);
-                tvAiResponse.setText(result);
-            }
 
+                // 1. ניקוי סימני Markdown אם נשארו
+                String cleanText = result.replace("**", "").replace("*", "");
+
+                // 2. זיהוי הקישור והפיכתו ל-HTML Link
+                // אנחנו מחפשים את הכתובת שמתחילה ב-http ומחליפים אותה בתגית לחיצה
+                String htmlText = cleanText.replaceAll(
+                        "(https?://[^\\s]+)",
+                        "<a href=\"$1\">לחץ כאן לסרטון הדרכה</a>"
+                );
+
+                // 3. הצגת הטקסט כ-HTML
+                tvAiResponse.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
+
+                // 4. חשוב מאוד: מאפשר ללחוץ על הקישור בתוך ה-TextView
+                tvAiResponse.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+            }
             @Override
             public void onError(Throwable error) {
                 pd.dismiss();

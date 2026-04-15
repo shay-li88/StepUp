@@ -13,6 +13,7 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -217,5 +218,28 @@ public class ProfileActivity extends AppCompatActivity {
         barChart.getAxisLeft().setAxisMinimum(0f);
         barChart.getDescription().setEnabled(false);
         barChart.getLegend().setEnabled(false);
+    }
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
+        if (bottomNav != null) {
+            bottomNav.setItemIconTintList(null);
+            bottomNav.setSelectedItemId(R.id.nav_profile);
+            bottomNav.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_profile) return true;
+
+                Intent intent = null;
+                if (id == R.id.nav_workouts) intent = new Intent(this, MyWorkoutsActivity.class);
+                else if (id == R.id.nav_posts) intent = new Intent(this, PostsActivity.class);
+                else if (id == R.id.nav_home) intent = new Intent(this, ProfileActivity.class);
+                else if (id == R.id.nav_challenges) intent = new Intent(this, ChallengesActivity.class);
+
+                if (intent != null) {
+                    startActivity(intent);
+                    overridePendingTransition(0, 0);
+                }
+                return true;
+            });
+        }
     }
 }
