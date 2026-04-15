@@ -1,12 +1,19 @@
 package com.example.stepup;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.stepup.utils.SupabaseStorageHelper;
+import com.example.stepup.utils.UserImageSelector;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -14,16 +21,21 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
-
+    private FirebaseAuth mAuth;
+    private UserImageSelector userImageSelector;
+    private ShapeableImageView ivUserProfile;
     private TextView tvUserName, tvAge, tvHeight, tvWeight, tvBMI;
     private TextView tvStreak, tvStars, tvLogs, tvWorkouts;
     private Button btnEditProfile, btnMyPosts;
@@ -33,10 +45,27 @@ public class ProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-
+        mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // 1. קודם כל מוצאים את התמונה מה-XML
+        ivUserProfile = findViewById(R.id.ivUserProfile);
+
+        // 2. כאן את מדביקה את השורה!
+        // זה מחבר את ה-Selector לתמונה הספציפית הזו
+        userImageSelector = new UserImageSelector(this, ivUserProfile);
+
+        // 3. ואז מגדירים מה קורה כשלוחצים עליה
+        ivUserProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userImageSelector.showImageSourceDialog();
+            }
+        });
+
 
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -52,6 +81,18 @@ public class ProfileActivity extends AppCompatActivity {
 
         btnMyPosts.setOnClickListener(v -> {
             startActivity(new Intent(ProfileActivity.this, MyPostsActivity.class));
+        });
+        ivUserProfile = findViewById(R.id.ivUserProfile);
+
+// אתחול הבוחר - הוא אחראי על פתיחת המצלמה/גלריה ועדכון התצוגה ב-ivUserProfile
+        userImageSelector = new UserImageSelector(this, ivUserProfile);
+
+// הגדרת לחיצה על התמונה כדי לבחור תמונה חדשה
+        ivUserProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userImageSelector.showImageSourceDialog();
+            }
         });
     }
 
@@ -239,6 +280,54 @@ public class ProfileActivity extends AppCompatActivity {
                     overridePendingTransition(0, 0);
                 }
                 return true;
+            });
+        }
+    }
+    private void updateUserImageUrlInFirestore(String url) {
+        String uid = mAuth.getUid();
+        if (uid != null) {
+            // גישה לאוסף המשתמשים ועדכון השדה של תמונת הפרופיל
+            db.collection("Users").document(uid)
+                    .update("profileImageUrl", url)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "URL updated successfully");
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firestore", "Error updating URL", e);
+                        Toast.makeText(this, "שגיאה בעדכון הנתונים", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+    private void uploadAndUpdateProfilePicture() {
+        // יצירת הקובץ מהבחירה של המשתמש
+        File imageFile = userImageSelector.createImageFile();
+
+        if (imageFile != null) {
+            String userId = mAuth.getUid();
+            if (userId == null) return;
+
+            // נתיב הקובץ בענן
+            String filename = "images/profile-pics/" + userId + ".jpg";
+
+            // הצגת דיאלוג טעינה (אופציונלי אבל מומלץ)
+            ProgressDialog pd = new ProgressDialog(this);
+            pd.setMessage("מעלה תמונה...");
+            pd.show();
+
+            SupabaseStorageHelper.uploadPicture(imageFile, filename, new SupabaseStorageHelper.OnResultCallback() {
+                @Override
+                public void onResult(boolean success, String url, String error) {
+                    pd.dismiss();
+                    if (success) {
+                        // 1. עדכון ויזואלי (התמונה כבר עודכנה ע"י הסלקטור, אבל זה לביטחון)
+                        Toast.makeText(ProfileActivity.this, "התמונה עודכנה בהצלחה!", Toast.LENGTH_SHORT).show();
+
+                        // 2. עדכון ה-URL במסד הנתונים (Firestore)
+                        updateUserImageUrlInFirestore(url);
+                    } else {
+                        Toast.makeText(ProfileActivity.this, "שגיאה בהעלאה: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                }
             });
         }
     }
