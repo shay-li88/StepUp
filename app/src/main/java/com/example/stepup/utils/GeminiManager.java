@@ -22,7 +22,7 @@ public class GeminiManager {
     private static GeminiManager instance;
 
     // שימוש בגרסה היציבה והמהירה ביותר למובייל
-    private static final String modelVersion = "gemini-1.5-flash";
+    private static final String modelVersion = "gemini-2.5-flash";
     private static final String TAG = "GeminiManager";
 
     private GeminiManager() {}
