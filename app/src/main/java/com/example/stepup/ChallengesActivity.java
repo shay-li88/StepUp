@@ -112,12 +112,12 @@ public class ChallengesActivity extends AppCompatActivity {
         });
     }
     private void generateAiChallenge(String history, ProgressDialog pd) {
-        // הוספת הנחיה לתמציתיות בריבוע (בקשת ריכוז בנקודות חשובות)
         String prompt = "הנה היסטוריית האימונים של המשתמש:\n" + history +
-                "\nצור אתגר כושר שבועי תמציתי. הנחיות:" +
-                "\n1. בלי כוכביות (**) ובלי Markdown בכלל." +
-                "\n2. בסוף, הוסף את המשפט המדויק: 'לחץ כאן לסרטון הדרכה' ואחריו את ה-URL של יוטיוב." +
-                "\n3. ישר לעניין בעברית.";
+                "\nצור אתגר כושר שבועי תמציתי. הנחיות עיצוב:" +
+                "\n1. את הכותרת (למשל: 'אתגר כושר שבועי:') תעטוף בתגית <b>." +
+                "\n2. אחרי כל סעיף הוסף תגית <br><br> כדי ליצור רווח ברור." +
+                "\n3. בסוף, כתוב: <a href=\"URL\">לחץ כאן לסרטון הדרכה</a> (החלף את URL בקישור האמיתי)." +
+                "\n4. אל תשתמש בכוכביות בכלל, רק בתגיות HTML בסיסיות.";
 
         geminiManager.sendText(prompt, this, new GeminiManager.GeminiCallback() {
             @Override
@@ -125,20 +125,17 @@ public class ChallengesActivity extends AppCompatActivity {
                 pd.dismiss();
                 cardResult.setVisibility(View.VISIBLE);
 
-                // 1. ניקוי סימני Markdown אם נשארו
-                String cleanText = result.replace("**", "").replace("*", "");
+                // ניקוי כוכביות שאולי השתרבבו בטעות
+                String formattedResult = result.replace("**", "");
 
-                // 2. זיהוי הקישור והפיכתו ל-HTML Link
-                // אנחנו מחפשים את הכתובת שמתחילה ב-http ומחליפים אותה בתגית לחיצה
-                String htmlText = cleanText.replaceAll(
-                        "(https?://[^\\s]+)",
-                        "<a href=\"$1\">לחץ כאן לסרטון הדרכה</a>"
-                );
+                // הצגת הטקסט כ-HTML (זה יפעיל את ה-<b> והקישורים)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    tvAiResponse.setText(android.text.Html.fromHtml(formattedResult, android.text.Html.FROM_HTML_MODE_COMPACT));
+                } else {
+                    tvAiResponse.setText(android.text.Html.fromHtml(formattedResult));
+                }
 
-                // 3. הצגת הטקסט כ-HTML
-                tvAiResponse.setText(android.text.Html.fromHtml(htmlText, android.text.Html.FROM_HTML_MODE_COMPACT));
-
-                // 4. חשוב מאוד: מאפשר ללחוץ על הקישור בתוך ה-TextView
+                // הופך את הקישור ללחיץ שפותח את אפליקציית יוטיוב
                 tvAiResponse.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
             }
             @Override
