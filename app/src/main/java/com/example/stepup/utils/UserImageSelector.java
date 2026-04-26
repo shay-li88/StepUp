@@ -19,6 +19,25 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.widget.ImageView;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
+
 public class UserImageSelector {
 
     private AppCompatActivity activity;
@@ -30,13 +49,16 @@ public class UserImageSelector {
 
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private ActivityResultLauncher<Intent> cameraLauncher;
+
+    private OnResultCallback resultCallback;
     private static final String TAG = "UserImageSelector";
 
-    public UserImageSelector(AppCompatActivity activity, ImageView imageView){
+    public UserImageSelector(AppCompatActivity activity, ImageView imageView, OnResultCallback resultCallback){
         this.activity = activity;
         this.imageView = imageView;
         this.imageUri = null;
         this.imageBitmap = null;
+        this.resultCallback = resultCallback;
         initResultLaunchers();
     }
     public void showImageSourceDialog() {
@@ -88,8 +110,11 @@ public class UserImageSelector {
                         Log.d(TAG, "PhotoPicker: Selected URI: " + uri);
                         this.imageUri = uri;
                         imageView.setImageURI(uri);
+                        resultCallback.onResult(true, uri.toString(), "");
                     } else {
                         Log.d(TAG, "PhotoPicker: No media selected");
+                        resultCallback.onResult(false, "", "No media selected");
+
                     }
                 });
 
@@ -106,11 +131,17 @@ public class UserImageSelector {
                             Log.d(TAG, "setting bitmap");
                             imageView.setImageBitmap(bitmap);
                             this.imageBitmap = bitmap;
+                            resultCallback.onResult(true,"", "");
+
                         } else {
                             Log.e(TAG, "Error retrieving image from camera intent");
+                            resultCallback.onResult(false, "", "Error retrieving image from camera intent");
+
                         }
                     } else {
                         Log.d(TAG, "Invalid code returned from camera intent");
+                        resultCallback.onResult(false, "", "Invalid code returned from camera intent");
+
                     }
                 }
         );

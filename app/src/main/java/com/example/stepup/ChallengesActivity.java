@@ -21,7 +21,6 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 public class ChallengesActivity extends AppCompatActivity {
 
@@ -45,6 +44,9 @@ public class ChallengesActivity extends AppCompatActivity {
         initViews();
         setupBottomNavigation();
 
+        // טעינת האתגר השמור מה-Firestore (אם קיים) ברגע שהדף נפתח
+        loadSavedChallenge();
+
         btnGenerate.setOnClickListener(v -> fetchWorkoutsAndGenerateChallenge());
     }
 
@@ -60,24 +62,62 @@ public class ChallengesActivity extends AppCompatActivity {
         });
     }
 
+    // פונקציה לטעינת אתגר שמור ממסמך המשתמש
+    private void loadSavedChallenge() {
+        String uid = mAuth.getUid();
+        if (uid == null) return;
+
+        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String savedChallenge = documentSnapshot.getString("lastAiChallenge");
+                if (savedChallenge != null && !savedChallenge.isEmpty()) {
+                    cardResult.setVisibility(View.VISIBLE);
+                    displayFormattedChallenge(savedChallenge);
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("Challenges", "Error loading saved challenge", e));
+    }
+
+    // פונקציה לשמירת האתגר ב-Firestore תחת שדה ייעודי במסמך המשתמש
+    private void saveChallengeToFirestore(String challengeText) {
+        String uid = mAuth.getUid();
+        if (uid != null) {
+            db.collection("users").document(uid)
+                    .update("lastAiChallenge", challengeText)
+                    .addOnSuccessListener(aVoid -> Log.d("Challenges", "Challenge saved successfully!"))
+                    .addOnFailureListener(e -> Log.e("Challenges", "Error saving challenge", e));
+        }
+    }
+
+    // פונקציית עזר לעיצוב והצגת הטקסט (HTML) ב-TextView
+    private void displayFormattedChallenge(String text) {
+        // ניקוי כוכביות שאולי השתרבבו מה-AI
+        String formatted = text.replace("**", "");
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            tvAiResponse.setText(android.text.Html.fromHtml(formatted, android.text.Html.FROM_HTML_MODE_COMPACT));
+        } else {
+            tvAiResponse.setText(android.text.Html.fromHtml(formatted));
+        }
+
+        // הופך קישורים ללחיצים
+        tvAiResponse.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+    }
+
     private void fetchWorkoutsAndGenerateChallenge() {
         String uid = mAuth.getUid();
         if (uid == null) return;
 
-        // הורדנו את ה-orderBy כרגע כדי למנוע קריסה אם לא הגדרת אינדקס ב-Firebase
         db.collection("Workouts")
                 .whereEqualTo("userId", uid)
                 .limit(5)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-
-                    // 1. בדיקה אם הרשימה ריקה לגמרי
                     if (queryDocumentSnapshots.isEmpty()) {
                         showNoWorkoutsMessage();
                         return;
                     }
 
-                    // 2. אם הגענו לכאן, יש לפחות אימון אחד!
                     ProgressDialog pd = new ProgressDialog(this);
                     pd.setMessage("מנתח את האימונים שלך...");
                     pd.show();
@@ -86,38 +126,31 @@ public class ChallengesActivity extends AppCompatActivity {
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         String type = doc.getString("type") != null ? doc.getString("type") : "אימון כללי";
                         String diff = doc.get("difficulty") != null ? doc.get("difficulty").toString() : "לא ידוע";
-
-                        workoutHistory.append("- ").append(type)
-                                .append(" (רמה: ").append(diff).append(")\n");
+                        workoutHistory.append("- ").append(type).append(" (רמה: ").append(diff).append(")\n");
                     }
 
                     generateAiChallenge(workoutHistory.toString(), pd);
                 })
                 .addOnFailureListener(e -> {
-                    // אם בכל זאת יש שגיאה (למשל בעיית רשת)
                     Log.e("Challenges", "Error: " + e.getMessage());
                     Toast.makeText(this, "אופס, משהו השתבש בגישה לנתונים", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    // פונקציית עזר להצגת ההודעה שביקשת
     private void showNoWorkoutsMessage() {
         cardResult.setVisibility(View.VISIBLE);
-        tvAiResponse.setText("עדיין לא נרשמו אימונים במערכת.\n\nכדי שאוכל לייצר לך אתגר מותאם אישית, כדאי להתחיל להתאמן או לייצר אימון חדש בדף האימונים! 💪");
-
-        // אופציונלי: שינוי הטקסט בכפתור כדי להניע אותו לפעולה
+        tvAiResponse.setText("עדיין לא נרשמו אימונים במערכת.\n\nכדי שאוכל לייצר לך אתגר מותאם אישית, כדאי להתחיל להתאמן!");
         btnGenerate.setText("יאללה, בוא נתחיל להתאמן!");
-        btnGenerate.setOnClickListener(v -> {
-            startActivity(new Intent(this, MyWorkoutsActivity.class));
-        });
+        btnGenerate.setOnClickListener(v -> startActivity(new Intent(this, MyWorkoutsActivity.class)));
     }
+
     private void generateAiChallenge(String history, ProgressDialog pd) {
         String prompt = "הנה היסטוריית האימונים של המשתמש:\n" + history +
                 "\nצור אתגר כושר שבועי תמציתי. הנחיות עיצוב:" +
-                "\n1. את הכותרת (למשל: 'אתגר כושר שבועי:') תעטוף בתגית <b>." +
-                "\n2. אחרי כל סעיף הוסף תגית <br><br> כדי ליצור רווח ברור." +
-                "\n3. בסוף, כתוב: <a href=\"URL\">לחץ כאן לסרטון הדרכה</a> (החלף את URL בקישור האמיתי)." +
-                "\n4. אל תשתמש בכוכביות בכלל, רק בתגיות HTML בסיסיות.";
+                "\n1. את הכותרת תעטוף בתגית <b>." +
+                "\n2. אחרי כל סעיף הוסף תגית <br><br>." +
+                "\n3. בסוף, כתוב קישור הדרכה ב-HTML." +
+                "\n4. אל תשתמש בכוכביות בכלל.";
 
         geminiManager.sendText(prompt, this, new GeminiManager.GeminiCallback() {
             @Override
@@ -125,19 +158,13 @@ public class ChallengesActivity extends AppCompatActivity {
                 pd.dismiss();
                 cardResult.setVisibility(View.VISIBLE);
 
-                // ניקוי כוכביות שאולי השתרבבו בטעות
-                String formattedResult = result.replace("**", "");
+                // 1. הצגת האתגר המעוצב על המסך
+                displayFormattedChallenge(result);
 
-                // הצגת הטקסט כ-HTML (זה יפעיל את ה-<b> והקישורים)
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    tvAiResponse.setText(android.text.Html.fromHtml(formattedResult, android.text.Html.FROM_HTML_MODE_COMPACT));
-                } else {
-                    tvAiResponse.setText(android.text.Html.fromHtml(formattedResult));
-                }
-
-                // הופך את הקישור ללחיץ שפותח את אפליקציית יוטיוב
-                tvAiResponse.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+                // 2. שמירת האתגר ב-Firestore כדי שיופיע בכניסה הבאה
+                saveChallengeToFirestore(result);
             }
+
             @Override
             public void onError(Throwable error) {
                 pd.dismiss();

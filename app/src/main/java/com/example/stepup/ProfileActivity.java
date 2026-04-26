@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide; // ספריית טעינת תמונות
+import com.example.stepup.utils.OnResultCallback;
 import com.example.stepup.utils.SupabaseStorageHelper;
 import com.example.stepup.utils.UserImageSelector;
 import com.github.mikephil.charting.charts.BarChart;
@@ -43,60 +45,31 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String userId;
 
+    private static final String TAG = "ProfileActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // 1. קודם כל מוצאים את התמונה מה-XML
-        ivUserProfile = findViewById(R.id.ivUserProfile);
-
-        // 2. כאן את מדביקה את השורה!
-        // זה מחבר את ה-Selector לתמונה הספציפית הזו
-        userImageSelector = new UserImageSelector(this, ivUserProfile);
-
-        // 3. ואז מגדירים מה קורה כשלוחצים עליה
-        ivUserProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userImageSelector.showImageSourceDialog();
-            }
-        });
-
-
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (mAuth.getCurrentUser() != null) {
+            userId = mAuth.getCurrentUser().getUid();
             initViews();
+            setupProfileImageLogic(); // לוגיקת בחירת תמונה
             loadUserData();
-            loadWorkoutStats(); // הפונקציה המעודכנת שמסנכרנת כוכבים
+            loadWorkoutStats();
             setupChart();
+            setupBottomNavigation();
+        } else {
+            finish(); // אם אין משתמש, סגור את המסך
         }
-
-        btnEditProfile.setOnClickListener(v -> {
-            startActivity(new Intent(ProfileActivity.this, EditProfileActivity.class));
-        });
-
-        btnMyPosts.setOnClickListener(v -> {
-            startActivity(new Intent(ProfileActivity.this, MyPostsActivity.class));
-        });
-        ivUserProfile = findViewById(R.id.ivUserProfile);
-
-// אתחול הבוחר - הוא אחראי על פתיחת המצלמה/גלריה ועדכון התצוגה ב-ivUserProfile
-        userImageSelector = new UserImageSelector(this, ivUserProfile);
-
-// הגדרת לחיצה על התמונה כדי לבחור תמונה חדשה
-        ivUserProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userImageSelector.showImageSourceDialog();
-            }
-        });
     }
 
     private void initViews() {
+        ivUserProfile = findViewById(R.id.ivUserProfile);
         tvUserName = findViewById(R.id.tvUserNameProfile);
         tvAge = findViewById(R.id.tvAge);
         tvHeight = findViewById(R.id.tvHeight);
@@ -109,18 +82,56 @@ public class ProfileActivity extends AppCompatActivity {
         btnEditProfile = findViewById(R.id.btnEditProfile);
         btnMyPosts = findViewById(R.id.btnMyPosts);
         barChart = findViewById(R.id.barChart);
+
+        btnEditProfile.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
+        btnMyPosts.setOnClickListener(v -> startActivity(new Intent(this, MyPostsActivity.class)));
+    }
+
+    private void setupProfileImageLogic() {
+        Log.d(TAG, "setupProfileImageLogic: start");
+        // אתחול הסלקטור
+        userImageSelector = new UserImageSelector(this, ivUserProfile, new OnResultCallback() {
+            @Override
+            public void onResult(boolean success, String url, String error) {
+                if(success)
+                {
+                    Log.d(TAG, "onResult: image selected successfully");
+                    uploadAndUpdateProfilePicture();
+                }
+                else{
+                    Log.d(TAG, "onResult: image selection failed. error: " + error);
+                }
+            }
+        });
+
+        // לחיצה רגילה: פתיחת בחירת תמונה
+        ivUserProfile.setOnClickListener(v -> userImageSelector.showImageSourceDialog());
+
+        // לחיצה ארוכה: העלאה ושמירה (אפשר לשנות שזה יקרה אוטומטית)
+        ivUserProfile.setOnLongClickListener(v -> {
+            uploadAndUpdateProfilePicture();
+            return true;
+        });
     }
 
     private void loadUserData() {
+        // שים לב: וודא שהקולקשן ב-Firestore נקרא "users" או "Users" (השתמשתי ב-"users")
         db.collection("users").document(userId).addSnapshotListener((doc, e) -> {
             if (e != null) return;
             if (doc != null && doc.exists()) {
                 tvUserName.setText(doc.getString("name") != null ? doc.getString("name") : "User");
 
-                // סטטיסטיקות מהמסמך
-                tvStreak.setText(String.valueOf(doc.getLong("streak") != null ? doc.getLong("streak") : 0));
+                // --- טעינת התמונה מה-URL שנשמר ---
+                String profileImageUrl = doc.getString("profileImageUrl");
+                if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                    Glide.with(this)
+                            .load(profileImageUrl)
+                            .placeholder(R.drawable.ic_user)
+                            .into(ivUserProfile);
+                }
 
-                // כאן אנחנו רק מציגים את ה-totalStars מהמסמך, הסנכרון קורה ב-loadWorkoutStats
+                // טעינת שאר הנתונים
+                tvStreak.setText(String.valueOf(doc.getLong("streak") != null ? doc.getLong("streak") : 0));
                 tvStars.setText(String.valueOf(doc.getLong("totalStars") != null ? doc.getLong("totalStars") : 0));
 
                 Long age = doc.getLong("age");
@@ -132,10 +143,45 @@ public class ProfileActivity extends AppCompatActivity {
                 tvHeight.setText((h != null ? h : 0) + " cm");
                 tvWeight.setText((w != null ? w : 0) + " kg");
                 tvBMI.setText("BMI " + (bmi != null ? String.format("%.1f", bmi) : "0.0"));
-
-                btnEditProfile.setText(age != null && age > 0 ? "Edit Details" : "Add Details");
             }
         });
+    }
+
+    private void uploadAndUpdateProfilePicture() {
+
+        Log.d(TAG, "uploadAndUpdateProfilePicture: start");
+        File imageFile = userImageSelector.createImageFile();
+
+        if (imageFile != null) {
+            Log.d(TAG, "uploadAndUpdateProfilePicture: image exists");
+            ProgressDialog pd = new ProgressDialog(this);
+            pd.setMessage("מעלה ושומר תמונה...");
+            pd.show();
+
+            String filename = "profile_pics/" + userId + "_" + System.currentTimeMillis() + ".jpg";
+
+            SupabaseStorageHelper.uploadPicture(imageFile, filename, (success, url, error) -> {
+                pd.dismiss();
+                if (success) {
+                    Log.d(TAG, "uploadAndUpdateProfilePicture: upload succeeded");
+                    updateUserImageUrlInFirestore(url);
+                    Toast.makeText(this, "הפרופיל עודכן!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d(TAG, "uploadAndUpdateProfilePicture: upload failed");
+                    Toast.makeText(this, "שגיאה: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.d(TAG, "uploadAndUpdateProfilePicture: image is null");
+            Toast.makeText(this, "קודם בחר תמונה בלחיצה רגילה", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateUserImageUrlInFirestore(String url) {
+        db.collection("users").document(userId)
+                .update("profileImageUrl", url)
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "URL updated"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Update failed", e));
     }
 
     private void loadWorkoutStats() {
@@ -146,15 +192,10 @@ public class ProfileActivity extends AppCompatActivity {
                     if (querySnap != null) {
                         int workoutCount = querySnap.size();
                         int calculatedStars = workoutCount * 3;
-
                         tvWorkouts.setText(String.valueOf(workoutCount));
                         tvLogs.setText(String.valueOf(workoutCount));
                         tvStars.setText(String.valueOf(calculatedStars));
-
-                        db.collection("users").document(userId)
-                                .update("totalStars", calculatedStars);
-
-                        // כאן אנחנו קוראים לעדכון הגרף עם הנתונים האמיתיים
+                        db.collection("users").document(userId).update("totalStars", calculatedStars);
                         updateChartWithRealData(querySnap.getDocuments());
                     }
                 });
@@ -162,36 +203,21 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void updateChartWithRealData(List<DocumentSnapshot> workouts) {
         float[] daysTimeSum = new float[7];
-        // רשימה שתשמור את הסוג הנפוץ ביותר לכל יום
-        String[] topTypePerDay = new String[7];
-        // מפה לספירת סוגים (סוג אימון -> כמות) לכל יום בנפרד
         ArrayList<java.util.HashMap<String, Integer>> typesCounter = new ArrayList<>();
-
         for (int i = 0; i < 7; i++) typesCounter.add(new java.util.HashMap<>());
 
         Calendar cal = Calendar.getInstance();
-
         for (DocumentSnapshot doc : workouts) {
             Object timestampObj = doc.get("timestamp");
             Date date = null;
-
-            if (timestampObj instanceof com.google.firebase.Timestamp) {
-                date = ((com.google.firebase.Timestamp) timestampObj).toDate();
-            } else if (timestampObj instanceof Long) {
-                date = new Date((Long) timestampObj);
-            }
+            if (timestampObj instanceof com.google.firebase.Timestamp) date = ((com.google.firebase.Timestamp) timestampObj).toDate();
+            else if (timestampObj instanceof Long) date = new Date((Long) timestampObj);
 
             if (date != null) {
                 cal.setTime(date);
                 int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1;
-
-                // 1. צבירת זמן (כמו שביקשת קודם)
                 Long workoutMinutes = doc.getLong("time");
-                if (workoutMinutes != null) {
-                    daysTimeSum[dayOfWeek] += workoutMinutes;
-                }
-
-                // 2. ספירת סוג האימון
+                if (workoutMinutes != null) daysTimeSum[dayOfWeek] += workoutMinutes;
                 String type = doc.getString("type");
                 if (type != null) {
                     java.util.HashMap<String, Integer> dayMap = typesCounter.get(dayOfWeek);
@@ -202,11 +228,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         ArrayList<BarEntry> entries = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
-
         for (int i = 0; i < 7; i++) {
             entries.add(new BarEntry(i, daysTimeSum[i]));
-
-            // מציאת סוג האימון השולט באותו יום
             String dominantType = "";
             int maxCount = -1;
             for (java.util.Map.Entry<String, Integer> entry : typesCounter.get(i).entrySet()) {
@@ -215,119 +238,55 @@ public class ProfileActivity extends AppCompatActivity {
                     dominantType = entry.getKey();
                 }
             }
-
-            // קביעת צבע לפי הסוג השולט (Default אפור אם אין אימונים)
             colors.add(getColorForType(dominantType));
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "Workout Duration (Minutes)");
-        dataSet.setColors(colors); // שימוש ברשימת הצבעים הדינמית
-
+        dataSet.setColors(colors);
         dataSet.setDrawValues(true);
-        BarData data = new BarData(dataSet);
-        barChart.setData(data);
-
-        String[] daysNames = new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(daysNames));
+        barChart.setData(new BarData(dataSet));
+        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}));
         barChart.invalidate();
     }
 
-    // פונקציית עזר להמרת שם סוג האימון לצבע
     private int getColorForType(String type) {
         if (type == null) return Color.LTGRAY;
-
         switch (type) {
-            case "Running":
-                return Color.parseColor("#75E285"); // ירוק
-            case "Pilates":
-                return Color.parseColor("#80DEEA"); // תכלת
-            case "Strength":
-                return Color.parseColor("#EF9BFDFF"); // סגול
-            case "Cardio":
-                return Color.parseColor("#F48FB1"); // ורוד
-            default:
-                return Color.parseColor("#90CAF9"); // כחול בהיר ברירת מחדל
+            case "Running": return Color.parseColor("#75E285");
+            case "Pilates": return Color.parseColor("#80DEEA");
+            case "Strength": return Color.parseColor("#EF9BFDFF");
+            case "Cardio": return Color.parseColor("#F48FB1");
+            default: return Color.parseColor("#90CAF9");
         }
     }
 
     private void setupChart() {
-        // הגדרות עיצוב כלליות לגרף (ללא נתונים עדיין)
         barChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         barChart.getXAxis().setDrawGridLines(false);
         barChart.getAxisRight().setEnabled(false);
-        barChart.getAxisLeft().setGranularity(1f); // מונע מספרים עשרוניים בציר ה-Y
+        barChart.getAxisLeft().setGranularity(1f);
         barChart.getAxisLeft().setAxisMinimum(0f);
         barChart.getDescription().setEnabled(false);
         barChart.getLegend().setEnabled(false);
     }
+
     private void setupBottomNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
         if (bottomNav != null) {
-            bottomNav.setItemIconTintList(null);
             bottomNav.setSelectedItemId(R.id.nav_profile);
             bottomNav.setOnItemSelectedListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.nav_profile) return true;
-
                 Intent intent = null;
                 if (id == R.id.nav_workouts) intent = new Intent(this, MyWorkoutsActivity.class);
                 else if (id == R.id.nav_posts) intent = new Intent(this, PostsActivity.class);
                 else if (id == R.id.nav_home) intent = new Intent(this, ProfileActivity.class);
                 else if (id == R.id.nav_challenges) intent = new Intent(this, ChallengesActivity.class);
-
                 if (intent != null) {
                     startActivity(intent);
                     overridePendingTransition(0, 0);
                 }
                 return true;
-            });
-        }
-    }
-    private void updateUserImageUrlInFirestore(String url) {
-        String uid = mAuth.getUid();
-        if (uid != null) {
-            // גישה לאוסף המשתמשים ועדכון השדה של תמונת הפרופיל
-            db.collection("Users").document(uid)
-                    .update("profileImageUrl", url)
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d("Firestore", "URL updated successfully");
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firestore", "Error updating URL", e);
-                        Toast.makeText(this, "שגיאה בעדכון הנתונים", Toast.LENGTH_SHORT).show();
-                    });
-        }
-    }
-    private void uploadAndUpdateProfilePicture() {
-        // יצירת הקובץ מהבחירה של המשתמש
-        File imageFile = userImageSelector.createImageFile();
-
-        if (imageFile != null) {
-            String userId = mAuth.getUid();
-            if (userId == null) return;
-
-            // נתיב הקובץ בענן
-            String filename = "images/profile-pics/" + userId + ".jpg";
-
-            // הצגת דיאלוג טעינה (אופציונלי אבל מומלץ)
-            ProgressDialog pd = new ProgressDialog(this);
-            pd.setMessage("מעלה תמונה...");
-            pd.show();
-
-            SupabaseStorageHelper.uploadPicture(imageFile, filename, new SupabaseStorageHelper.OnResultCallback() {
-                @Override
-                public void onResult(boolean success, String url, String error) {
-                    pd.dismiss();
-                    if (success) {
-                        // 1. עדכון ויזואלי (התמונה כבר עודכנה ע"י הסלקטור, אבל זה לביטחון)
-                        Toast.makeText(ProfileActivity.this, "התמונה עודכנה בהצלחה!", Toast.LENGTH_SHORT).show();
-
-                        // 2. עדכון ה-URL במסד הנתונים (Firestore)
-                        updateUserImageUrlInFirestore(url);
-                    } else {
-                        Toast.makeText(ProfileActivity.this, "שגיאה בהעלאה: " + error, Toast.LENGTH_SHORT).show();
-                    }
-                }
             });
         }
     }

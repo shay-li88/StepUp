@@ -46,6 +46,7 @@ dependencies {
     // ניהול חיי אפליקציה וגרפים
     implementation("androidx.lifecycle:lifecycle-process:2.8.3")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.15.1")
 
     // --- Firebase & AI Setup (השינוי המרכזי) ---
     // 1. הגדרת ה-BOM (Bill of Materials)

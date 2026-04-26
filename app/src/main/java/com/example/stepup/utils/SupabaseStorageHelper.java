@@ -15,11 +15,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SupabaseStorageHelper {
-    private static final String supabaseUrl = "ששמרתם url העתיקו לפה את ה";
+    private static final String supabaseUrl = " https://rgxefgovfehmniygqynk.supabase.co\n";
 
-    private static final String supabaseKey = "ששמרתם api key העתיקו לפה את ה";
+    private static final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJneGVmZ292ZmVobW5peWdxeW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODgwNDUsImV4cCI6MjA4MTI2NDA0NX0.Ejt0OaVVY8JAe7kqxUHTGlj-Y233oa3RXGP2KQu_IZo\n";
 
-    private static final String SUPABASE_BUCKET = "שלכם bucket העתיקו לפה את שם ה";
+    private static final String SUPABASE_BUCKET = "shaylisbucket";
 
     private static final String TAG = "SupabaseStorageHelper";
 
@@ -76,7 +76,4 @@ public class SupabaseStorageHelper {
         return supabaseUrl + "/storage/v1/object/public/" + SUPABASE_BUCKET + "/" + filePath;
     }
 
-    public interface OnResultCallback {
-        void onResult(boolean success, String url, String error);
-    }
 }
