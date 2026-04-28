@@ -103,7 +103,6 @@
                     android:backgroundTint="#D1E9F6"
                     android:text="Running"
                     android:textColor="#2D6A4F"
-                    app:icon="@drawable/ic_running"
                     app:iconTint="#2D6A4F" />
 
                 <Button
@@ -115,7 +114,6 @@
                     android:backgroundTint="#EADCF7"
                     android:text="Strength"
                     android:textColor="#5E548E"
-                    app:icon="@drawable/ic_strength"
                     app:iconTint="#5E548E" />
 
                 <Button
@@ -127,7 +125,6 @@
                     android:backgroundTint="#FAD2E1"
                     android:text="Cardio"
                     android:textColor="#C2185B"
-                    app:icon="@drawable/ic_cardio"
                     app:iconTint="#C2185B" />
 
                 <Button
@@ -139,7 +136,6 @@
                     android:backgroundTint="#D0E1F9"
                     android:text="Pilates"
                     android:textColor="#1A4375"
-                    app:icon="@drawable/ic_pilates"
                     app:iconTint="#1A4375" />
             </GridLayout>
 

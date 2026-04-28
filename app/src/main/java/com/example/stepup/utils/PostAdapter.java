@@ -56,7 +56,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvPostContent.setText(post.getContent());
         holder.tvPostTime.setText(getTimeAgo(post.getTimestamp()));
 
-        // --- חדש: טעינת תמונת פרופיל מעודכנת של כותב הפוסט ---
+        // 2. טעינת תמונת פרופיל (דינמית מהמשתמש)
         if (authorId != null) {
             FirebaseFirestore.getInstance().collection("users").document(authorId)
                     .addSnapshotListener((doc, e) -> {
@@ -68,7 +68,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                             if (imageUrl != null && !imageUrl.isEmpty()) {
                                 Glide.with(context)
                                         .load(imageUrl)
-                                        .signature(new ObjectKey(lastUpdate)) // סנכרון עם ה-Cache
+                                        .signature(new ObjectKey(lastUpdate))
                                         .circleCrop()
                                         .placeholder(R.drawable.ic_user)
                                         .into(holder.ivUserProfile);
@@ -79,7 +79,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                     });
         }
 
-        // --- תיקון ספירת תגובות ---
+        // 3. הצגת תמונת הפוסט (אם הועלתה כזו)
+        if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
+            holder.cardPostImage.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(post.getImageUrl())
+                    .into(holder.ivPostImage);
+        } else {
+            holder.cardPostImage.setVisibility(View.GONE);
+        }
+
+        // 4. ספירת תגובות בלייב
         if (post.getPostId() != null) {
             FirebaseFirestore.getInstance().collection("posts")
                     .document(post.getPostId())
@@ -91,10 +101,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                     });
         }
 
-        // 2. צביעת רקע לפי סוג אימון
+        // 5. צביעת רקע לפי סוג אימון
         updateCardBackground(holder, post);
 
-        // 3. כפתור מחיקה (רק לפוסטים שלי)
+        // 6. מחיקה (רק לבעל הפוסט)
         if (authorId != null && authorId.equals(currentUserId)) {
             holder.btnDeletePost.setVisibility(View.VISIBLE);
             holder.btnDeletePost.setOnClickListener(v -> showDeleteDialog(post.getPostId(), position));
@@ -102,10 +112,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             holder.btnDeletePost.setVisibility(View.GONE);
         }
 
-        // 4. לייקים
+        // 7. לייקים
         setupLikeLogic(holder, post, currentUserId);
 
-        // 5. פתיחת תגובות
+        // 8. פתיחת תגובות
         holder.btnComment.setOnClickListener(v -> {
             if (post.getPostId() != null) {
                 CommentsSheet sheet = new CommentsSheet(post.getPostId());
@@ -182,9 +192,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
         TextView tvUserName, tvPostTitle, tvPostContent, tvLikeCount, tvCommentCount, tvPostTime;
-        ImageView ivLikeIcon, ivUserProfile; // נוסף ivUserProfile
+        ImageView ivLikeIcon, ivUserProfile, ivPostImage;
         LinearLayout btnLike, btnComment;
-        CardView cardPost;
+        CardView cardPost, cardPostImage;
         ImageButton btnDeletePost;
 
         public PostViewHolder(@NonNull View itemView) {
@@ -196,7 +206,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             tvCommentCount = itemView.findViewById(R.id.tvCommentCount);
             tvPostTime = itemView.findViewById(R.id.tvPostTime);
             ivLikeIcon = itemView.findViewById(R.id.ivLikeIcon);
-            ivUserProfile = itemView.findViewById(R.id.ivPostUserProfile); // וודאי שזה ה-ID ב-XML
+            ivUserProfile = itemView.findViewById(R.id.ivPostUserProfile);
+            ivPostImage = itemView.findViewById(R.id.ivPostImage); // התמונה בתוך הפוסט
+            cardPostImage = itemView.findViewById(R.id.cardPostImage); // הקארד שעוטף אותה
             btnLike = itemView.findViewById(R.id.btnLike);
             btnComment = itemView.findViewById(R.id.btnComment);
             cardPost = itemView.findViewById(R.id.cardPost);
