@@ -5,16 +5,16 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide; // ספריית טעינת תמונות
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.signature.ObjectKey;
 import com.example.stepup.utils.OnResultCallback;
-import com.example.stepup.utils.SupabaseStorageHelper;
+import com.example.stepup.utils.ProfileManager;
 import com.example.stepup.utils.UserImageSelector;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -37,6 +37,7 @@ import java.util.List;
 public class ProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private UserImageSelector userImageSelector;
+    private ProfileManager profileManager; // שימוש ב-Manager החדש
     private ShapeableImageView ivUserProfile;
     private TextView tvUserName, tvAge, tvHeight, tvWeight, tvBMI;
     private TextView tvStreak, tvStars, tvLogs, tvWorkouts;
@@ -54,17 +55,18 @@ public class ProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        profileManager = new ProfileManager(); // אתחול המנהל
 
         if (mAuth.getCurrentUser() != null) {
             userId = mAuth.getCurrentUser().getUid();
             initViews();
-            setupProfileImageLogic(); // לוגיקת בחירת תמונה
+            setupProfileImageLogic();
             loadUserData();
             loadWorkoutStats();
             setupChart();
             setupBottomNavigation();
         } else {
-            finish(); // אם אין משתמש, סגור את המסך
+            finish();
         }
     }
 
@@ -88,49 +90,43 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupProfileImageLogic() {
-        Log.d(TAG, "setupProfileImageLogic: start");
-        // אתחול הסלקטור
+        // אתחול בחירת תמונה
         userImageSelector = new UserImageSelector(this, ivUserProfile, new OnResultCallback() {
             @Override
             public void onResult(boolean success, String url, String error) {
-                if(success)
-                {
-                    Log.d(TAG, "onResult: image selected successfully");
+                if (success) {
                     uploadAndUpdateProfilePicture();
-                }
-                else{
-                    Log.d(TAG, "onResult: image selection failed. error: " + error);
+                } else {
+                    Log.e(TAG, "Image selection failed: " + error);
                 }
             }
         });
 
-        // לחיצה רגילה: פתיחת בחירת תמונה
         ivUserProfile.setOnClickListener(v -> userImageSelector.showImageSourceDialog());
-
-        // לחיצה ארוכה: העלאה ושמירה (אפשר לשנות שזה יקרה אוטומטית)
-        ivUserProfile.setOnLongClickListener(v -> {
-            uploadAndUpdateProfilePicture();
-            return true;
-        });
     }
 
     private void loadUserData() {
-        // שים לב: וודא שהקולקשן ב-Firestore נקרא "users" או "Users" (השתמשתי ב-"users")
         db.collection("users").document(userId).addSnapshotListener((doc, e) -> {
             if (e != null) return;
             if (doc != null && doc.exists()) {
                 tvUserName.setText(doc.getString("name") != null ? doc.getString("name") : "User");
 
-                // --- טעינת התמונה מה-URL שנשמר ---
+                // משיכת URL וחותמת זמן לעדכון Glide
                 String profileImageUrl = doc.getString("profileImageUrl");
+                Long lastUpdate = doc.getLong("lastImageUpdate");
+                if (lastUpdate == null) lastUpdate = 0L;
+
                 if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                     Glide.with(this)
                             .load(profileImageUrl)
+                            // השימוש ב-Signature מבטיח רענון תמונה כשיש עדכון ב-Firestore
+                            .signature(new ObjectKey(lastUpdate))
                             .placeholder(R.drawable.ic_user)
+                            .error(R.drawable.ic_user)
+                            .circleCrop()
                             .into(ivUserProfile);
                 }
 
-                // טעינת שאר הנתונים
                 tvStreak.setText(String.valueOf(doc.getLong("streak") != null ? doc.getLong("streak") : 0));
                 tvStars.setText(String.valueOf(doc.getLong("totalStars") != null ? doc.getLong("totalStars") : 0));
 
@@ -148,40 +144,29 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void uploadAndUpdateProfilePicture() {
-
-        Log.d(TAG, "uploadAndUpdateProfilePicture: start");
         File imageFile = userImageSelector.createImageFile();
 
         if (imageFile != null) {
-            Log.d(TAG, "uploadAndUpdateProfilePicture: image exists");
             ProgressDialog pd = new ProgressDialog(this);
-            pd.setMessage("מעלה ושומר תמונה...");
+            pd.setMessage("מעלה תמונה ומעדכן פרופיל...");
+            pd.setCancelable(false);
             pd.show();
 
-            String filename = "profile_pics/" + userId + "_" + System.currentTimeMillis() + ".jpg";
+            // שימוש ב-ProfileManager לביצוע ההעלאה והעדכון ב-Firestore במכה אחת
+            profileManager.uploadAndSyncProfilePicture(imageFile, new ProfileManager.OnProfileUpdateListener() {
+                @Override
+                public void onSuccess(String imageUrl) {
+                    pd.dismiss();
+                    Toast.makeText(ProfileActivity.this, "הפרופיל עודכן בהצלחה!", Toast.LENGTH_SHORT).show();
+                }
 
-            SupabaseStorageHelper.uploadPicture(imageFile, filename, (success, url, error) -> {
-                pd.dismiss();
-                if (success) {
-                    Log.d(TAG, "uploadAndUpdateProfilePicture: upload succeeded");
-                    updateUserImageUrlInFirestore(url);
-                    Toast.makeText(this, "הפרופיל עודכן!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d(TAG, "uploadAndUpdateProfilePicture: upload failed");
-                    Toast.makeText(this, "שגיאה: " + error, Toast.LENGTH_SHORT).show();
+                @Override
+                public void onFailure(String error) {
+                    pd.dismiss();
+                    Toast.makeText(ProfileActivity.this, "שגיאה: " + error, Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
-            Log.d(TAG, "uploadAndUpdateProfilePicture: image is null");
-            Toast.makeText(this, "קודם בחר תמונה בלחיצה רגילה", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void updateUserImageUrlInFirestore(String url) {
-        db.collection("users").document(userId)
-                .update("profileImageUrl", url)
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "URL updated"))
-                .addOnFailureListener(e -> Log.e("Firestore", "Update failed", e));
     }
 
     private void loadWorkoutStats() {
@@ -232,10 +217,12 @@ public class ProfileActivity extends AppCompatActivity {
             entries.add(new BarEntry(i, daysTimeSum[i]));
             String dominantType = "";
             int maxCount = -1;
-            for (java.util.Map.Entry<String, Integer> entry : typesCounter.get(i).entrySet()) {
-                if (entry.getValue() > maxCount) {
-                    maxCount = entry.getValue();
-                    dominantType = entry.getKey();
+            if (typesCounter.get(i) != null) {
+                for (java.util.Map.Entry<String, Integer> entry : typesCounter.get(i).entrySet()) {
+                    if (entry.getValue() > maxCount) {
+                        maxCount = entry.getValue();
+                        dominantType = entry.getKey();
+                    }
                 }
             }
             colors.add(getColorForType(dominantType));
@@ -254,7 +241,7 @@ public class ProfileActivity extends AppCompatActivity {
         switch (type) {
             case "Running": return Color.parseColor("#75E285");
             case "Pilates": return Color.parseColor("#80DEEA");
-            case "Strength": return Color.parseColor("#EF9BFDFF");
+            case "Strength": return Color.parseColor("#EF9BFD");
             case "Cardio": return Color.parseColor("#F48FB1");
             default: return Color.parseColor("#90CAF9");
         }

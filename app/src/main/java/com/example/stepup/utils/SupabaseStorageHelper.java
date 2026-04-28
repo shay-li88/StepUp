@@ -1,8 +1,7 @@
 package com.example.stepup.utils;
+
 import android.util.Log;
-
 import java.io.File;
-
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -15,31 +14,33 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SupabaseStorageHelper {
-    private static final String supabaseUrl = " https://rgxefgovfehmniygqynk.supabase.co\n";
-
-    private static final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJneGVmZ292ZmVobW5peWdxeW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODgwNDUsImV4cCI6MjA4MTI2NDA0NX0.Ejt0OaVVY8JAe7kqxUHTGlj-Y233oa3RXGP2KQu_IZo\n";
-
+    private static final String supabaseUrl = "https://rgxefgovfehmniygqynk.supabase.co";
+    private static final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJneGVmZ292ZmVobW5peWdxeW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODgwNDUsImV4cCI6MjA4MTI2NDA0NX0.Ejt0OaVVY8JAe7kqxUHTGlj-Y233oa3RXGP2KQu_IZo";
     private static final String SUPABASE_BUCKET = "shaylisbucket";
-
     private static final String TAG = "SupabaseStorageHelper";
+
+    public interface OnResultCallback {
+        void onResult(boolean success, String url, String error);
+    }
 
     public static void uploadPicture(final File file, final String filePath, OnResultCallback callback) {
         try {
-
-            Log.i(TAG, "uploadPicture: Uploading file to Supabase: " + filePath);
-
             OkHttpClient client = new OkHttpClient.Builder().build();
+
+            // תיקון קטן כאן: וודא שיש סלאש בסוף ה-Base URL
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(supabaseUrl + "/")
                     .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
+
             SupabaseStorageService service = retrofit.create(SupabaseStorageService.class);
 
             RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
             MultipartBody.Part body = MultipartBody.Part.createFormData("file", filePath, requestFile);
 
             String bearer = "Bearer " + supabaseKey;
+
             Call<ResponseBody> call = service.uploadFile(
                     supabaseKey,
                     bearer,
@@ -47,33 +48,29 @@ public class SupabaseStorageHelper {
                     filePath,
                     body
             );
+
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
-                        String publicUrl =  getFileSupabaseUrl(filePath);
-                        Log.i(TAG, "uploadPicture: Profile picture uploaded successfully to Supabase. Public URL: " + publicUrl);
-                        callback.onResult(true, publicUrl, null);
+                        callback.onResult(true, getFileSupabaseUrl(filePath), null);
                     } else {
-                        Log.e(TAG, "uploadPicture: Supabase upload failed: " + response.message());
-                        callback.onResult(false, null, response.message());
+                        callback.onResult(false, null, "Error: " + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.e(TAG, "Supabase upload failed", t);
                     callback.onResult(false, null, t.getMessage());
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "Exception during Supabase upload", e);
             callback.onResult(false, null, e.getMessage());
         }
     }
 
     public static String getFileSupabaseUrl(String filePath) {
+        // לוודא שהנתיב נבנה נכון עבור Glide
         return supabaseUrl + "/storage/v1/object/public/" + SUPABASE_BUCKET + "/" + filePath;
     }
-
 }
