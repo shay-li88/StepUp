@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,19 +23,38 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        // אתחול Firebase
         db = FirebaseFirestore.getInstance();
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            initViews();
+            loadCurrentUserData(); // הוספת טעינת נתונים קיימים
+        } else {
+            finish();
         }
+    }
 
-
+    private void initViews() {
         etAge = findViewById(R.id.etAge);
         etHeight = findViewById(R.id.etHeight);
         etWeight = findViewById(R.id.etWeight);
         btnSave = findViewById(R.id.btnSaveDetails);
 
         btnSave.setOnClickListener(v -> saveUserData());
+    }
+
+    /**
+     * טוען את הנתונים הנוכחיים מה-Firestore כדי שהשדות לא יהיו ריקים
+     */
+    private void loadCurrentUserData() {
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        if (documentSnapshot.contains("age")) etAge.setText(String.valueOf(documentSnapshot.getLong("age")));
+                        if (documentSnapshot.contains("height")) etHeight.setText(String.valueOf(documentSnapshot.getDouble("height")));
+                        if (documentSnapshot.contains("weight")) etWeight.setText(String.valueOf(documentSnapshot.getDouble("weight")));
+                    }
+                });
     }
 
     private void saveUserData() {
@@ -62,9 +82,11 @@ public class EditProfileActivity extends AppCompatActivity {
             userUpdate.put("weight", weight);
             userUpdate.put("bmi", bmi);
 
-            // התיקון כאן: שימוש ב-set עם SetOptions.merge() במקום update
+            // עדכון חותמת זמן כללית לעדכון הפרופיל
+            userUpdate.put("lastUpdate", System.currentTimeMillis());
+
             db.collection("users").document(userId)
-                    .set(userUpdate, com.google.firebase.firestore.SetOptions.merge())
+                    .set(userUpdate, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show();
                         finish();
