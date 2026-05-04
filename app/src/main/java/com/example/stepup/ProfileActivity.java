@@ -267,7 +267,7 @@ public class ProfileActivity extends AppCompatActivity {
                 Intent intent = null;
                 if (id == R.id.nav_workouts) intent = new Intent(this, MyWorkoutsActivity.class);
                 else if (id == R.id.nav_posts) intent = new Intent(this, PostsActivity.class);
-                else if (id == R.id.nav_home) intent = new Intent(this, ProfileActivity.class);
+                else if (id == R.id.nav_home) intent = new Intent(this, FeedActivity.class);
                 else if (id == R.id.nav_challenges) intent = new Intent(this, ChallengesActivity.class);
                 if (intent != null) {
                     startActivity(intent);
