@@ -41,7 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ShapeableImageView ivUserProfile;
     private TextView tvUserName, tvAge, tvHeight, tvWeight, tvBMI;
     private TextView tvStreak, tvStars, tvLogs, tvWorkouts;
-    private Button btnEditProfile, btnMyPosts;
+    private Button btnEditProfile, btnMyPosts,btnLogout;
     private BarChart barChart;
     private FirebaseFirestore db;
     private String userId;
@@ -68,6 +68,14 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             finish();
         }
+        Button btnLogout = findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut(); // התנתקות מ-Firebase
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class); // חזרה למסך התחברות
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void initViews() {
@@ -83,12 +91,22 @@ public class ProfileActivity extends AppCompatActivity {
         tvWorkouts = findViewById(R.id.tvTotalWorkouts);
         btnEditProfile = findViewById(R.id.btnEditProfile);
         btnMyPosts = findViewById(R.id.btnMyPosts);
+        btnLogout = findViewById(R.id.btnLogout);
         barChart = findViewById(R.id.barChart);
 
         btnEditProfile.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
         btnMyPosts.setOnClickListener(v -> startActivity(new Intent(this, MyPostsActivity.class)));
-    }
+        btnLogout.setOnClickListener(v -> logoutUser());
 
+    }
+    private void logoutUser() {
+        mAuth.signOut();
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
     private void setupProfileImageLogic() {
         // אתחול בחירת תמונה
         userImageSelector = new UserImageSelector(this, ivUserProfile, new OnResultCallback() {
