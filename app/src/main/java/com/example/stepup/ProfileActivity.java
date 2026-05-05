@@ -87,8 +87,8 @@ public class ProfileActivity extends AppCompatActivity {
         tvBMI = findViewById(R.id.tvBMI);
         tvStreak = findViewById(R.id.tvStreakCount);
         tvStars = findViewById(R.id.tvTotalStars);
-        tvLogs = findViewById(R.id.tvDaysLogs);
         tvWorkouts = findViewById(R.id.tvTotalWorkouts);
+        tvLogs = findViewById(R.id.tvDaysLogs);//המספר
         btnEditProfile = findViewById(R.id.btnEditProfile);
         btnMyPosts = findViewById(R.id.btnMyPosts);
         btnLogout = findViewById(R.id.btnLogout);
@@ -157,6 +157,7 @@ public class ProfileActivity extends AppCompatActivity {
                 tvHeight.setText((h != null ? h : 0) + " cm");
                 tvWeight.setText((w != null ? w : 0) + " kg");
                 tvBMI.setText("BMI " + (bmi != null ? String.format("%.1f", bmi) : "0.0"));
+                updateSeniorityStatus();
             }
         });
     }
@@ -196,7 +197,6 @@ public class ProfileActivity extends AppCompatActivity {
                         int workoutCount = querySnap.size();
                         int calculatedStars = workoutCount * 3;
                         tvWorkouts.setText(String.valueOf(workoutCount));
-                        tvLogs.setText(String.valueOf(workoutCount));
                         tvStars.setText(String.valueOf(calculatedStars));
                         db.collection("users").document(userId).update("totalStars", calculatedStars);
                         updateChartWithRealData(querySnap.getDocuments());
@@ -206,8 +206,9 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void updateChartWithRealData(List<DocumentSnapshot> workouts) {
         float[] daysTimeSum = new float[7];
-        ArrayList<java.util.HashMap<String, Integer>> typesCounter = new ArrayList<>();
-        for (int i = 0; i < 7; i++) typesCounter.add(new java.util.HashMap<>());
+        // שינוי ל-Long כדי לסכום דקות מצטברות לכל סוג אימון
+        ArrayList<java.util.HashMap<String, Long>> typesTimeCounter = new ArrayList<>();
+        for (int i = 0; i < 7; i++) typesTimeCounter.add(new java.util.HashMap<>());
 
         Calendar cal = Calendar.getInstance();
         for (DocumentSnapshot doc : workouts) {
@@ -220,11 +221,16 @@ public class ProfileActivity extends AppCompatActivity {
                 cal.setTime(date);
                 int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1;
                 Long workoutMinutes = doc.getLong("time");
-                if (workoutMinutes != null) daysTimeSum[dayOfWeek] += workoutMinutes;
                 String type = doc.getString("type");
-                if (type != null) {
-                    java.util.HashMap<String, Integer> dayMap = typesCounter.get(dayOfWeek);
-                    dayMap.put(type, dayMap.getOrDefault(type, 0) + 1);
+
+                if (workoutMinutes != null) {
+                    daysTimeSum[dayOfWeek] += workoutMinutes;
+
+                    if (type != null) {
+                        java.util.HashMap<String, Long> dayMap = typesTimeCounter.get(dayOfWeek);
+                        // כאן השינוי הקריטי: מוסיפים את הדקות (workoutMinutes) במקום 1
+                        dayMap.put(type, dayMap.getOrDefault(type, 0L) + workoutMinutes);
+                    }
                 }
             }
         }
@@ -234,11 +240,13 @@ public class ProfileActivity extends AppCompatActivity {
         for (int i = 0; i < 7; i++) {
             entries.add(new BarEntry(i, daysTimeSum[i]));
             String dominantType = "";
-            int maxCount = -1;
-            if (typesCounter.get(i) != null) {
-                for (java.util.Map.Entry<String, Integer> entry : typesCounter.get(i).entrySet()) {
-                    if (entry.getValue() > maxCount) {
-                        maxCount = entry.getValue();
+            long maxMinutes = -1; // משתנה לבדיקת הזמן המקסימלי
+
+            if (typesTimeCounter.get(i) != null) {
+                for (java.util.Map.Entry<String, Long> entry : typesTimeCounter.get(i).entrySet()) {
+                    // הבדיקה היא מי הסוג שקיבל הכי הרבה דקות
+                    if (entry.getValue() > maxMinutes) {
+                        maxMinutes = entry.getValue();
                         dominantType = entry.getKey();
                     }
                 }
@@ -251,17 +259,32 @@ public class ProfileActivity extends AppCompatActivity {
         dataSet.setDrawValues(true);
         barChart.setData(new BarData(dataSet));
         barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}));
-        barChart.invalidate();
+        barChart.invalidate(); // רענון הגרף
     }
+
 
     private int getColorForType(String type) {
         if (type == null) return Color.LTGRAY;
-        switch (type) {
-            case "Running": return Color.parseColor("#75E285");
-            case "Pilates": return Color.parseColor("#80DEEA");
-            case "Strength": return Color.parseColor("#EF9BFD");
-            case "Cardio": return Color.parseColor("#F48FB1");
-            default: return Color.parseColor("#90CAF9");
+
+        // הופך לאותיות קטנות כדי שלא תהיה בעיה עם Strength לעומת strength
+        String lowerType = type.toLowerCase().trim();
+
+        // בדיקה לפי מילת מפתח - יתפוס גם אם כתוב "Running morning" או "Strength - Upper Body"
+        if (lowerType.contains("running")) {
+            return Color.parseColor("#75E285"); // ירוק
+        }
+        else if (lowerType.contains("pilates")) {
+            return Color.parseColor("#80DEEA"); // תכלת
+        }
+        else if (lowerType.contains("strength")) {
+            return Color.parseColor("#EF9BFD"); // סגול
+        }
+        else if (lowerType.contains("cardio")) {
+            return Color.parseColor("#F48FB1"); // ורוד
+        }
+        else {
+            // צבע ברירת מחדל אם לא נמצאה אף מילה מהרשימה
+            return Color.parseColor("#90CAF9");
         }
     }
 
@@ -293,6 +316,15 @@ public class ProfileActivity extends AppCompatActivity {
                 }
                 return true;
             });
+        }
+    }
+    private void updateSeniorityStatus() {
+        if (mAuth.getCurrentUser() != null) {
+            long signupTime = mAuth.getCurrentUser().getMetadata().getCreationTimestamp();
+            long days = ((System.currentTimeMillis() - signupTime) / (1000 * 60 * 60 * 24)) + 1;
+
+            // משאירים רק את זה:
+            tvLogs.setText(String.valueOf(days));
         }
     }
 }
