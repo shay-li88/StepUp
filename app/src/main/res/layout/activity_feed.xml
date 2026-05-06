@@ -131,15 +131,14 @@
 
         </LinearLayout>
     </ScrollView>
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_feed"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:itemIconTint="#1A237E"
-        app:itemTextColor="#1A237E"
+        app:itemIconTint="#FFFFFF"
+        app:itemTextColor="#03124B"
         app:menu="@menu/bottom_nav_menu"
-        app:itemIconSize="40dp"
+        app:itemIconSize="48dp"
         app:itemPaddingTop="8dp"
         app:itemPaddingBottom="8dp"
         app:itemActiveIndicatorStyle="@null"
@@ -148,5 +147,6 @@
         app:layout_constraintRight_toRightOf="parent"
         android:background="@drawable/bottom_nav"
         app:backgroundTint="@null"/>
+
 
 </LinearLayout>

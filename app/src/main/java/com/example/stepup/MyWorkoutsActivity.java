@@ -46,6 +46,20 @@ public class MyWorkoutsActivity extends AppCompatActivity {
             });
         }
 
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_workouts);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_workouts);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_workouts) return true;
+            if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+            overridePendingTransition(0, 0);
+            return true;
+        });
+
         recyclerView = findViewById(R.id.recyclerViewWorkouts);
         emptyCard = findViewById(R.id.workoutCardEmpty);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -58,7 +72,6 @@ public class MyWorkoutsActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         loadWorkoutsFromFirestore();
         setupFilterButtons();
-        setupBottomNavigation();
     }
 
     private void setupFilterButtons() {
@@ -123,20 +136,5 @@ public class MyWorkoutsActivity extends AppCompatActivity {
         }
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_workouts);
-        if (bottomNav != null) {
-            bottomNav.setSelectedItemId(R.id.nav_workouts);
-            bottomNav.setOnItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_workouts) return true;
-                if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
-                else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
-                else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
-                else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
-                finish();
-                return true;
-            });
-        }
-    }
+
 }

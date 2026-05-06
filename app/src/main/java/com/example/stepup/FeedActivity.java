@@ -72,11 +72,24 @@ public class FeedActivity extends AppCompatActivity {
             return insets;
         });
 
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) return true;
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
+            else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+            overridePendingTransition(0, 0);
+            return true;
+        });
+
         initViews();
         setupListeners();
         displayUserData();
         checkAndResetStreak();
-        setupBottomNavigation();
         askNotificationPermission();
 
         // הפעלת האזנה בזמן אמת לפוסטים
@@ -220,27 +233,5 @@ public class FeedActivity extends AppCompatActivity {
         });
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
-        if (bottomNav != null) {
-            bottomNav.setItemIconTintList(null);
-            bottomNav.setSelectedItemId(R.id.nav_home);
-            bottomNav.setOnItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_home) return true;
 
-                Intent intent = null;
-                if (id == R.id.nav_workouts) intent = new Intent(this, MyWorkoutsActivity.class);
-                else if (id == R.id.nav_posts) intent = new Intent(this, PostsActivity.class);
-                else if (id == R.id.nav_profile) intent = new Intent(this, ProfileActivity.class);
-                else if (id == R.id.nav_challenges) intent = new Intent(this, ChallengesActivity.class);
-
-                if (intent != null) {
-                    startActivity(intent);
-                    overridePendingTransition(0, 0);
-                }
-                return true;
-            });
-        }
-    }
 }

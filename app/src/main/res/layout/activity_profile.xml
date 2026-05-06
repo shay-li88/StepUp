@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_feed"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_Profile"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -206,17 +206,19 @@
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_feed"
+        android:id="@+id/bottom_navigation_Profile"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:background="@drawable/bottom_nav"
-        app:backgroundTint="@null"
+        android:layout_height="wrap_content"
+        app:itemIconTint="#FFFFFF"
+        app:itemTextColor="#03124B"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconSize="48dp"
+        app:itemPaddingTop="8dp"
+        app:itemPaddingBottom="8dp"
         app:itemActiveIndicatorStyle="@null"
-        app:itemIconSize="30dp"
-        app:itemIconTint="#1A237E"
-        app:itemTextColor="#1A237E"
-        app:labelVisibilityMode="labeled"
-        app:itemHorizontalTranslationEnabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@drawable/bottom_nav"
+        app:backgroundTint="@null"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

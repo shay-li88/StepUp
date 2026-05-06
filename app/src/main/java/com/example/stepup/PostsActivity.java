@@ -39,8 +39,23 @@ public class PostsActivity extends AppCompatActivity {
             startActivity(new Intent(PostsActivity.this, AddPostsActivity.class));
         });
 
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_posts);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_posts);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_posts) return true;
+            if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
+            else if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+            overridePendingTransition(0, 0);
+            return true;
+        });
+
+
         loadPostsFromFirestore();
-        setupBottomNavigation();
+
     }
 
     private void loadPostsFromFirestore() {
@@ -68,21 +83,5 @@ public class PostsActivity extends AppCompatActivity {
                 });
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_posts);
-        bottomNav.setItemIconTintList(null);
-        bottomNav.setSelectedItemId(R.id.nav_posts);
 
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_posts) return true;
-            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
-            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
-            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
-            else if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
-            overridePendingTransition(0, 0);
-            finish();
-            return true;
-        });
-    }
 }

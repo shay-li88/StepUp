@@ -64,7 +64,6 @@ public class ProfileActivity extends AppCompatActivity {
             loadUserData();
             loadWorkoutStats();
             setupChart();
-            setupBottomNavigation();
         } else {
             finish();
         }
@@ -75,6 +74,20 @@ public class ProfileActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
+        });
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_Profile);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_profile);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_profile) return true;
+            if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
+            else if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, ProfileActivity.class));
+            overridePendingTransition(0, 0);
+            return true;
         });
     }
 
@@ -298,26 +311,7 @@ public class ProfileActivity extends AppCompatActivity {
         barChart.getLegend().setEnabled(false);
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_feed);
-        if (bottomNav != null) {
-            bottomNav.setSelectedItemId(R.id.nav_profile);
-            bottomNav.setOnItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_profile) return true;
-                Intent intent = null;
-                if (id == R.id.nav_workouts) intent = new Intent(this, MyWorkoutsActivity.class);
-                else if (id == R.id.nav_posts) intent = new Intent(this, PostsActivity.class);
-                else if (id == R.id.nav_home) intent = new Intent(this, FeedActivity.class);
-                else if (id == R.id.nav_challenges) intent = new Intent(this, ChallengesActivity.class);
-                if (intent != null) {
-                    startActivity(intent);
-                    overridePendingTransition(0, 0);
-                }
-                return true;
-            });
-        }
-    }
+
     private void updateSeniorityStatus() {
         if (mAuth.getCurrentUser() != null) {
             long signupTime = mAuth.getCurrentUser().getMetadata().getCreationTimestamp();

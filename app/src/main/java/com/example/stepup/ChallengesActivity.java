@@ -41,8 +41,22 @@ public class ChallengesActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         geminiManager = GeminiManager.getInstance();
 
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_challenges);
+        bottomNav.setItemIconTintList(null);
+        bottomNav.setSelectedItemId(R.id.nav_challenges);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_challenges) return true;
+            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
+            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
+            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
+            overridePendingTransition(0, 0);
+            return true;
+        });
+
         initViews();
-        setupBottomNavigation();
 
         // טעינת האתגר השמור מה-Firestore (אם קיים) ברגע שהדף נפתח
         loadSavedChallenge();
@@ -173,18 +187,4 @@ public class ChallengesActivity extends AppCompatActivity {
         });
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation_challenges);
-        bottomNav.setSelectedItemId(R.id.nav_challenges);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_challenges) return true;
-            if (id == R.id.nav_workouts) startActivity(new Intent(this, MyWorkoutsActivity.class));
-            else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
-            else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
-            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
-            finish();
-            return true;
-        });
-    }
 }
