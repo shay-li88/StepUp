@@ -93,50 +93,6 @@
                 android:layout_marginTop="20dp"
                 android:columnCount="2"
                 android:alignmentMode="alignMargins">
-
-                <Button
-                    android:id="@+id/btnRunning"
-                    style="@style/WorkoutButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:backgroundTint="#D1E9F6"
-                    android:text="Running"
-                    android:textColor="#2D6A4F"
-                    app:iconTint="#2D6A4F" />
-
-                <Button
-                    android:id="@+id/btnStrength"
-                    style="@style/WorkoutButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:backgroundTint="#EADCF7"
-                    android:text="Strength"
-                    android:textColor="#5E548E"
-                    app:iconTint="#5E548E" />
-
-                <Button
-                    android:id="@+id/btnCardio"
-                    style="@style/WorkoutButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:backgroundTint="#FAD2E1"
-                    android:text="Cardio"
-                    android:textColor="#C2185B"
-                    app:iconTint="#C2185B" />
-
-                <Button
-                    android:id="@+id/btnPilates"
-                    style="@style/WorkoutButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:backgroundTint="#D0E1F9"
-                    android:text="Pilates"
-                    android:textColor="#1A4375"
-                    app:iconTint="#1A4375" />
             </GridLayout>
 
             <Button
