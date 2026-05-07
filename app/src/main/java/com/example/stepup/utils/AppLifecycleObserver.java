@@ -38,8 +38,10 @@ public class AppLifecycleObserver implements DefaultLifecycleObserver {
         Intent serviceIntent = new Intent(context, PostsNotificationService.class);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "onStop: start foreground service");
             context.startForegroundService(serviceIntent);
         } else {
+            Log.d(TAG, "onStop: start service");
             context.startService(serviceIntent);
         }
     }
