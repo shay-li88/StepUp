@@ -12,7 +12,7 @@ import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import com.example.stepup.FeedActivity;
+import com.example.stepup.HomeActivity;
 import com.example.stepup.R;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
@@ -116,7 +116,7 @@ public class PostsNotificationService extends Service {
 
         Log.d(TAG, "sendNotification: Building notification: " + title);
 
-        Intent resultIntent = new Intent(getApplicationContext(), FeedActivity.class);
+        Intent resultIntent = new Intent(getApplicationContext(), HomeActivity.class);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
         stackBuilder.addNextIntentWithParentStack(resultIntent);
 

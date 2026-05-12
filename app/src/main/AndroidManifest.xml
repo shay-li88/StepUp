@@ -60,7 +60,7 @@
             android:name=".RegistrationActivity"
             android:exported="false" />
         <activity
-            android:name=".FeedActivity"
+            android:name=".HomeActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"

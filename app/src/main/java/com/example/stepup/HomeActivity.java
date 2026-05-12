@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.example.stepup.Post;
+
 import com.example.stepup.utils.PostAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.Timestamp;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-public class FeedActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity {
 
     private static final String TAG = "FeedActivity";
     private TextView tvHelloUser, tvStreak, tvPoints;
@@ -58,7 +58,7 @@ public class FeedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_feed);
+        setContentView(R.layout.activity_home);
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();

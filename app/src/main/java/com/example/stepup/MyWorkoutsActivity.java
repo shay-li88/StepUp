@@ -15,9 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.stepup.utils.WorkoutAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +51,7 @@ public class MyWorkoutsActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_workouts) return true;
             if (id == R.id.nav_challenges) startActivity(new Intent(this, ChallengesActivity.class));
-            else if (id == R.id.nav_home) startActivity(new Intent(this, FeedActivity.class));
+            else if (id == R.id.nav_home) startActivity(new Intent(this, HomeActivity.class));
             else if (id == R.id.nav_posts) startActivity(new Intent(this, PostsActivity.class));
             else if (id == R.id.nav_profile) startActivity(new Intent(this, ProfileActivity.class));
             overridePendingTransition(0, 0);
