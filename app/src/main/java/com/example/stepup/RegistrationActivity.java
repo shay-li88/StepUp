@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,7 +36,12 @@ public class RegistrationActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.etUsername);
         emailEditText = findViewById(R.id.etEmail);
         passwordEditText = findViewById(R.id.etPassword);
-
+        TextView loginLink = findViewById(R.id.link_login);
+        loginLink.setOnClickListener(v -> {
+            Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish(); // סוגר את דף ההרשמה כדי שלא יישאר פתוח ברקע
+        });
         Button registerButton = findViewById(R.id.btn_register);
         registerButton.setOnClickListener(v -> registerButtonClick());
     }
