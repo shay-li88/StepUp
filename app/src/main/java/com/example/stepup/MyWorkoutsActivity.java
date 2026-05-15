@@ -85,7 +85,7 @@ public class MyWorkoutsActivity extends AppCompatActivity {
         String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) return;
 
-        // חובה שיהיה תואם לשמירה: "Workouts"
+        // חובה שיהיה תואם לשמירה: "Workouts" שאילה
         db.collection("Workouts")
                 .whereEqualTo("userId", currentUserId)
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)

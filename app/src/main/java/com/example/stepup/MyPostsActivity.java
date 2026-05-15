@@ -45,7 +45,7 @@ public class MyPostsActivity extends AppCompatActivity {
     private void loadMyPosts() {
         if (currentUserId == null) return;
 
-        // שימי לב: האוסף הוא "posts" והשדה הוא "userId"
+        // שאילתה שליפת הפוסטים של המשתמש המחובר: האוסף הוא "posts" והשדה הוא "userId"
         db.collection("posts")
                 .whereEqualTo("userId", currentUserId)
                 .orderBy("timestamp", Query.Direction.DESCENDING) // סדר מהחדש לישן

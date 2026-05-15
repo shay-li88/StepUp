@@ -74,15 +74,15 @@ public class RunningActivity extends AppCompatActivity {
         newWorkout.setUserId(currentUserId);
         newWorkout.setTimestamp(Timestamp.now());
 
-        // שמירת האימון ב-Workouts
+        // שמירת האימון ריצה חדש ב-Workouts שאילתה
         db.collection("Workouts").add(newWorkout)
                 .addOnSuccessListener(documentReference -> {
                     Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
 
-                    // --- עדכון סטטיסטיקות משתמש (כוכבים וסטריק חכם) ---
+                    // סטטיסטיקות משתמש (כוכבים וסטריק חכם)
                     updateUserStats(currentUserId);
 
-                    Toast.makeText(RunningActivity.this, "Workout saved!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RunningActivity.this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
 
                     Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
                     startActivity(intent);
@@ -97,9 +97,10 @@ public class RunningActivity extends AppCompatActivity {
     // הפונקציה המעודכנת לעדכון כוכבים וסטריק
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
-
+        // שאילתה שליפת נתוני המשתמש כדי לבדוק מתי עודכן הסטרייק לאחרונה
         userRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
+                //שאילתה עדכון מספר הכוכבים
                 // 1. תמיד מוסיפים 3 כוכבים על כל אימון
                 userRef.update("totalStars", FieldValue.increment(3));
 
@@ -108,6 +109,7 @@ public class RunningActivity extends AppCompatActivity {
                 Date today = new Date();
 
                 if (lastUpdateTS == null || !isSameDay(lastUpdateTS.toDate(), today)) {
+                    // שאילתה עדכון הסטרייק ותיעוד זמן העדכון האחרון
                     userRef.update(
                             "streak", FieldValue.increment(1),
                             "lastStreakUpdate", new Timestamp(today)

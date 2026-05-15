@@ -59,9 +59,11 @@ public class PostsActivity extends AppCompatActivity {
     }
 
     private void loadPostsFromFirestore() {
+        // שאילתה טעינת כל הפוסטים בפיד הציבורי ומיון מהחדש לישן
         // שימוש ב-"posts" באות קטנה להתאמה מלאה ל-DB
         db.collection("posts")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
+                //האזנה בזמן אמת לכל פוסט חדש שנוסף על ידי משתמש כלשהו
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Toast.makeText(this, "שגיאה בטעינת פוסטים", Toast.LENGTH_SHORT).show();

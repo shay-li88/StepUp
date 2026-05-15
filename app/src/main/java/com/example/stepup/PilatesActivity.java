@@ -72,7 +72,7 @@ public class PilatesActivity extends AppCompatActivity {
         Workout newWorkout = new Workout("Pilates " + selectedFocus, selectedDifficulty, timePicker.getValue(), etNotes.getText().toString(), 0.0);
         newWorkout.setUserId(currentUserId);
         newWorkout.setTimestamp(Timestamp.now());
-
+            //שאילתה לשמירת אימון חדש
         db.collection("Workouts").add(newWorkout)
                 .addOnSuccessListener(documentReference -> {
                     Log.d(TAG, "Workout saved with ID: " + documentReference.getId());
@@ -95,7 +95,7 @@ public class PilatesActivity extends AppCompatActivity {
     // הפונקציה המעודכנת לעדכון כוכבים וסטריק בצורה חכמה
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
-
+        //שאילתה לעדכון הכוכבים והסטרייק היומי
         userRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 // 1. תמיד מוסיפים 3 כוכבים

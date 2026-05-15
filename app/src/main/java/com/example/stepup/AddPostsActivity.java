@@ -94,7 +94,7 @@ public class AddPostsActivity extends AppCompatActivity {
 
     private void uploadImageAndPublish(String title, String content) {
         ProgressDialog pd = new ProgressDialog(this);
-        pd.setMessage("מפרסם פוסט עם תמונה...");
+        pd.setMessage("מפרסם פוסט עם תמונה");
         pd.setCancelable(false);
         pd.show();
 

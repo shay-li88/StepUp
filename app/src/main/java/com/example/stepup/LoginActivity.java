@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Validate input
         if (email.isEmpty() || password.isEmpty()) {
-            Log.w("LoginActivity", "Empty email and/or password field");
+            Log.w("LoginActivity", "Please fill in all fields");
             Toast.makeText(LoginActivity.this, "Please fill in all fields", Toast.LENGTH_LONG).show();
             return;
         }

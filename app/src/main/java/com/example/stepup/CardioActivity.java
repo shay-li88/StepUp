@@ -100,7 +100,7 @@ public class CardioActivity extends AppCompatActivity {
                     // עדכון סטטיסטיקות משתמש בצורה חכמה
                     updateUserStats(currentUserId);
 
-                    Toast.makeText(this, "Workout saved!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(this, MyWorkoutsActivity.class));
                     finish();
                 })
@@ -112,10 +112,9 @@ public class CardioActivity extends AppCompatActivity {
 
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
-
         userRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
-                // תמיד מוסיפים 3 כוכבים
+                // תמיד מוסיפים 3 כוכבים שאילתה
                 userRef.update("totalStars", FieldValue.increment(3));
 
                 // לוגיקה לסטריק: רק אם זה האימון הראשון להיום

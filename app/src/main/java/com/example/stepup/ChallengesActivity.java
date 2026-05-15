@@ -121,7 +121,7 @@ public class ChallengesActivity extends AppCompatActivity {
     private void fetchWorkoutsAndGenerateChallenge() {
         String uid = mAuth.getUid();
         if (uid == null) return;
-
+//שליפת חמשת האימונים האחרונים כדי ליצור אתגר מותאם שאילתה
         db.collection("Workouts")
                 .whereEqualTo("userId", uid)
                 .limit(5)

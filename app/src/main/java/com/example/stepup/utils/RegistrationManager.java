@@ -142,7 +142,7 @@ public class RegistrationManager {
         user.put("height", 0.0);
         user.put("weight", 0.0);
         user.put("bmi", 0.0);
-
+        //שאילתה
         db.collection("users").document(userId)
                 .set(user)
                 .addOnSuccessListener(aVoid -> {

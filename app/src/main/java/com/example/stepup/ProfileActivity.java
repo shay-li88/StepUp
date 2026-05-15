@@ -137,6 +137,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserData() {
+        //שאילתה לנתוני המשתמש ועדכון תמונת פרופיל
         db.collection("users").document(userId).addSnapshotListener((doc, e) -> {
             if (e != null) return;
             if (doc != null && doc.exists()) {
@@ -180,7 +181,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (imageFile != null) {
             ProgressDialog pd = new ProgressDialog(this);
-            pd.setMessage("מעלה תמונה ומעדכן פרופיל...");
+            pd.setMessage("תמונה הועלתה");
             pd.setCancelable(false);
             pd.show();
 
@@ -202,6 +203,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadWorkoutStats() {
+        //שאילתה שולף את היסטוריית האימונים של המשתמש
         db.collection("Workouts")
                 .whereEqualTo("userId", userId)
                 .addSnapshotListener((querySnap, e) -> {
@@ -211,7 +213,9 @@ public class ProfileActivity extends AppCompatActivity {
                         int calculatedStars = workoutCount * 3;
                         tvWorkouts.setText(String.valueOf(workoutCount));
                         tvStars.setText(String.valueOf(calculatedStars));
+                        //שאילתה מעדכן את כמות הכוכבים במסמך המשתמש לפי החישוב
                         db.collection("users").document(userId).update("totalStars", calculatedStars);
+                        // שאילתה מעבד את הנתונים שנשלפו ומציג אותם כגרף
                         updateChartWithRealData(querySnap.getDocuments());
                     }
                 });

@@ -87,7 +87,7 @@ public class StrengthActivity extends AppCompatActivity {
                     // עדכון נקודות וסטריק
                     updateUserStats(currentUserId);
 
-                    Toast.makeText(this, "Workout saved!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving workout", e));
@@ -95,10 +95,11 @@ public class StrengthActivity extends AppCompatActivity {
 
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
-
+        //שאילתה שליפת נתוני המשתמש כדי לבדוק מתי עודכן הסטרייק לאחרונה
         userRef.get().addOnSuccessListener(doc -> {
             if (doc.exists()) {
                 // תמיד מעדכנים כוכבים (כל אימון נותן כוכבים)
+                //שאילתה עדכון מספר הכוכבים
                 userRef.update("totalStars", FieldValue.increment(3));
 
                 // לוגיקה חכמה לסטריק: מעלים רק אם זה האימון הראשון היום
@@ -106,6 +107,7 @@ public class StrengthActivity extends AppCompatActivity {
                 Date today = new Date();
 
                 if (lastUpdateTS == null || !isSameDay(lastUpdateTS.toDate(), today)) {
+                    //שאילתה עדכון הסטרייק ותיעוד זמן העדכון האחרון
                     userRef.update(
                             "streak", FieldValue.increment(1),
                             "lastStreakUpdate", new Timestamp(today)

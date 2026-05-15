@@ -99,7 +99,7 @@ public class HomeActivity extends AppCompatActivity {
     // הפונקציה החדשה לעדכונים בזמן אמת
     private void registerToNewPosts() {
         Log.d(TAG, "registerToNewPosts: start");
-
+        //שאילתה לפוסטים חדשים בזמן אמת
         db.collection("posts")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -162,7 +162,7 @@ public class HomeActivity extends AppCompatActivity {
             String currentUserId = user.getUid();
             String name = user.getDisplayName();
             tvHelloUser.setText("Hello, " + (name != null && !name.isEmpty() ? name : "User") + "!");
-
+            //שאילתה להאזנה בזמן אמת על הסטרייק והכוכבים
             db.collection("users").document(currentUserId)
                     .addSnapshotListener((documentSnapshot, error) -> {
                         if (error != null) return;
@@ -180,7 +180,7 @@ public class HomeActivity extends AppCompatActivity {
     private void checkAndResetStreak() {
         String uid = mAuth.getUid();
         if (uid == null) return;
-
+        //שאילתה לבדיקת האימון האחרון של המשתמש לצורך חישוב הסטריק
         db.collection("Workouts")
                 .whereEqualTo("userId", uid)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -214,6 +214,7 @@ public class HomeActivity extends AppCompatActivity {
         long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
         if (diffInDays >= 2) {
+            // שאילתה איפוס הסטריק ל-0 במקרה שעברו יותר מ-48 שעות
             db.collection("users").document(uid).update("streak", 0);
             Log.d("Streak", "Streak reset - more than 48 hours passed");
         }
