@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,11 +27,13 @@ import java.util.Map;
 public class CommentsSheet extends BottomSheetDialogFragment {
 
     private String postId;
-    private com.example.stepup.CommentAdapter adapter;
+    private CommentAdapter adapter;
     private List<Comment> commentList;
     private FirebaseFirestore db;
 
-    public CommentsSheet() {}
+    public CommentsSheet() {
+        // Constructor ריק חובה
+    }
 
     public CommentsSheet(String postId) {
         this.postId = postId;
@@ -39,6 +42,7 @@ public class CommentsSheet extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // וודאי שיש לך קובץ layout בשם layout_comments_sheet
         View v = inflater.inflate(R.layout.layout_comments_sheet, container, false);
 
         db = FirebaseFirestore.getInstance();
@@ -48,7 +52,7 @@ public class CommentsSheet extends BottomSheetDialogFragment {
         ImageButton btnSend = v.findViewById(R.id.btnSendComment);
 
         commentList = new ArrayList<>();
-        adapter = new com.example.stepup.CommentAdapter(commentList);
+        adapter = new CommentAdapter(commentList);
 
         rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
         rvComments.setAdapter(adapter);
@@ -66,10 +70,10 @@ public class CommentsSheet extends BottomSheetDialogFragment {
     }
 
     private void loadComments() {
-        // שינוי ל-posts ו-comments באותיות קטנות
         db.collection("posts").document(postId).collection("comments")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
+                    if (error != null) return;
                     if (value != null) {
                         commentList.clear();
                         commentList.addAll(value.toObjects(Comment.class));
@@ -93,15 +97,14 @@ public class CommentsSheet extends BottomSheetDialogFragment {
         commentData.put("commentText", text);
         commentData.put("timestamp", com.google.firebase.Timestamp.now());
 
-        // שינוי ל-posts ו-comments באותיות קטנות בשמירה
         db.collection("posts").document(postId).collection("comments")
                 .add(commentData)
                 .addOnSuccessListener(documentReference -> {
                     etComment.setText("");
-
-                    // עדכון מונה התגובות בפוסט הראשי (גם כאן ב-posts קטן)
+                    // עדכון מונה תגובות בפוסט
                     db.collection("posts").document(postId)
                             .update("commentCount", FieldValue.increment(1));
-                });
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "שגיאה בשליחת תגובה", Toast.LENGTH_SHORT).show());
     }
 }

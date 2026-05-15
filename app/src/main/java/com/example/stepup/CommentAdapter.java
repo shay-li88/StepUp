@@ -1,13 +1,12 @@
-package com.example.stepup.utils;
+package com.example.stepup;
+
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.stepup.Comment;
-
 import java.util.List;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
@@ -21,7 +20,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @NonNull
     @Override
     public CommentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // משתמשים ב-layout פשוט של אנדרואיד או אחד שיצרת
+        // שימוש ב-layout מובנה של אנדרואיד
         View view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_2, parent, false);
         return new CommentViewHolder(view);
     }
@@ -29,13 +28,17 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         Comment comment = commentList.get(position);
-        holder.text1.setText(comment.getUserName()); // השם בבולד
-        holder.text1.setTypeface(null, android.graphics.Typeface.BOLD);
-        holder.text2.setText(comment.getCommentText()); // תוכן התגובה
+        if (comment != null) {
+            holder.text1.setText(comment.getUserName());
+            holder.text1.setTypeface(null, Typeface.BOLD);
+            holder.text2.setText(comment.getCommentText());
+        }
     }
 
     @Override
-    public int getItemCount() { return commentList.size(); }
+    public int getItemCount() {
+        return commentList != null ? commentList.size() : 0;
+    }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         TextView text1, text2;
