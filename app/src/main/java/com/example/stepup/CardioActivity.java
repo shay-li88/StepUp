@@ -25,12 +25,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * מסך רישום אימון אירובי (CardioActivity):
+ * מאפשר למשתמש לבחור את סוג רמת הקושי (Light/Moderate/HIIT) ואת משך זמן הפעילות.
+ * הנתונים נשמרים ב-Firestore, ומעדכנים את מדדי הכוכבים והרצף (Streak) של המשתמש בהתאם ללוגיקה המשותפת.
+ */
 public class CardioActivity extends AppCompatActivity {
 
     private Button btnLight, btnModerate, btnHIIT, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedDifficulty = "";
+    private String selectedDifficulty = ""; // משתנה לשמירת רמת הקושי, מתחיל ריק כדי לאלץ בחירה
     private FirebaseFirestore db;
     private static final String TAG = "CardioActivity";
 
@@ -42,6 +47,7 @@ public class CardioActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
+        // הגנה קוסמטית: התאמת שולי המסך למערכת (System Bars) למראה EdgeToEdge נקי
         View mainView = findViewById(android.R.id.content);
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
@@ -58,12 +64,14 @@ public class CardioActivity extends AppCompatActivity {
         timePicker = findViewById(R.id.cardioTimePicker);
         etNotes = findViewById(R.id.etCardioNotes);
 
+        // הגדרת טווח ערכים לבורר הזמן (בין 5 דקות לשעתיים, ברירת מחדל 35 דקות)
         if (timePicker != null) {
             timePicker.setMinValue(5);
             timePicker.setMaxValue(120);
             timePicker.setValue(35);
         }
 
+        // אתחול המאזינים לכפתורי הרמות
         setupLevelButton(btnLight);
         setupLevelButton(btnModerate);
         setupLevelButton(btnHIIT);
@@ -73,6 +81,9 @@ public class CardioActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * פונקציה האוספת את הנתונים, בודקת תקינות קלט (ולידציה), ומפרסמת אובייקט Workout לאוסף ב-Firestore
+     */
     private void publishWorkout() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
@@ -80,6 +91,7 @@ public class CardioActivity extends AppCompatActivity {
             return;
         }
 
+        // הגנה קריטית (וולדיציה): מונע מהמשתמש לשמור אימון ללא בחירת רמת קושי
         if (selectedDifficulty.isEmpty()) {
             Toast.makeText(this, "Please select difficulty level", Toast.LENGTH_SHORT).show();
             return;
@@ -102,7 +114,7 @@ public class CardioActivity extends AppCompatActivity {
 
                     Toast.makeText(this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(this, MyWorkoutsActivity.class));
-                    finish();
+                    finish(); // סגירת המסך כדי שלא יחזור אליו בלחיצת Back
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error saving", e);
@@ -110,6 +122,9 @@ public class CardioActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * פונקציה המנהלת את הלוגיקה החשובה של ניקוד ורצף אימונים (Streak) בתוך מסמך המשתמש
+     */
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
         userRef.get().addOnSuccessListener(doc -> {
@@ -117,7 +132,7 @@ public class CardioActivity extends AppCompatActivity {
                 // תמיד מוסיפים 3 כוכבים שאילתה
                 userRef.update("totalStars", FieldValue.increment(3));
 
-                // לוגיקה לסטריק: רק אם זה האימון הראשון להיום
+                // לוגיקה לסטריק: רק אם זה האימון הראשון להיום (מניעת Spam של הסטריק באותו יום קלנדרי)
                 Timestamp lastUpdateTS = doc.getTimestamp("lastStreakUpdate");
                 Date today = new Date();
 
@@ -134,6 +149,9 @@ public class CardioActivity extends AppCompatActivity {
         }).addOnFailureListener(e -> Log.e("Points", "Error updating user stats", e));
     }
 
+    /**
+     * פונקציית עזר לבדיקה והשוואה קלנדרית בין שני תאריכים
+     */
     private boolean isSameDay(Date d1, Date d2) {
         Calendar cal1 = Calendar.getInstance();
         Calendar cal2 = Calendar.getInstance();
@@ -143,26 +161,35 @@ public class CardioActivity extends AppCompatActivity {
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
+    /**
+     * פונקציית עזר המקשרת אירוע לחיצה לכל כפתור רמה ומעדכנת את תצוגת הכפתורים
+     */
     private void setupLevelButton(Button btn) {
         if (btn == null) return;
         btn.setOnClickListener(v -> {
-            resetButtons();
-            selectButton(btn);
-            selectedDifficulty = btn.getText().toString();
+            resetButtons(); // החזרת כל הכפתורים למצב שקוף/רגיל
+            selectButton(btn); // הדגשת הכפתור שנבחר כעת
+            selectedDifficulty = btn.getText().toString(); // שמירת הרמה במשתנה המחלקה
         });
     }
 
+    /**
+     * משנה ויזואלית את הכפתור שנבחר (צבע פונט לבן ורקע ייעודי)
+     */
     private void selectButton(Button btn) {
         btn.setBackgroundResource(R.drawable.cardio_btn_selected);
         btn.setTextColor(Color.WHITE);
     }
 
+    /**
+     * מאפסת את העיצוב של כל שלושת כפתורי הרמה (הופכת רקע לשקוף ומחזירה צבע טקסט ורוד/מג'נטה)
+     */
     private void resetButtons() {
         Button[] btns = {btnLight, btnModerate, btnHIIT};
         for (Button b : btns) {
             if (b != null) {
                 b.setBackgroundResource(android.R.color.transparent);
-                b.setTextColor(Color.parseColor("#C2185B"));
+                b.setTextColor(Color.parseColor("#C2185B")); // צבע ורוד כהה ייחודי לקארדיו
             }
         }
     }

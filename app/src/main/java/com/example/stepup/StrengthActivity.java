@@ -24,13 +24,18 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * מסך רישום אימון כוח (StrengthActivity):
+ * מאפשר למשתמש לבחור את רמת העומס (Difficulty) ואת סוג קבוצת השרירים (Upper/Lower/Full Body).
+ * הנתונים נשמרים ב-Firestore, ובדומה למסך הריצה, מעדכנים את מדדי הכוכבים והרצף (Streak) של המשתמש.
+ */
 public class StrengthActivity extends AppCompatActivity {
 
     private Button btnLight, btnModerate, btnHeavy, btnUpper, btnLower, btnFull, btnGo;
     private NumberPicker timePicker;
     private EditText etNotes;
-    private String selectedDifficulty = "Light";
-    private String selectedType = "Full Body";
+    private String selectedDifficulty = "Light"; // ברירת מחדל לרמת הקושי
+    private String selectedType = "Full Body";   // ברירת מחדל לסוג אימון הכוח
     private static final String TAG = "StrengthActivity";
     private FirebaseFirestore db;
 
@@ -42,23 +47,27 @@ public class StrengthActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
+        // הגדרת מערכת ה-EdgeToEdge להתאמת שולי המסך (System Bars Insets)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        initViews();
+        initViews(); // קישור רכיבי ה-XML
 
+        // אתחול בורר הזמן (דקות)
         if (timePicker != null) {
             timePicker.setMinValue(5);
             timePicker.setMaxValue(120);
             timePicker.setValue(5);
         }
 
+        // הגדרת לוגיקת בחירה חכמה מבוססת ממשק (Interface) לקבוצות הכפתורים השונות
         setupSelection(new Button[]{btnLight, btnModerate, btnHeavy}, btn -> selectedDifficulty = btn.getText().toString());
         setupSelection(new Button[]{btnUpper, btnLower, btnFull}, btn -> selectedType = btn.getText().toString());
 
+        // כפתור שמירה ושליחה
         btnGo.setOnClickListener(v -> saveStrengthWorkout());
     }
 
@@ -74,10 +83,14 @@ public class StrengthActivity extends AppCompatActivity {
         etNotes = findViewById(R.id.etStrengthNotes);
     }
 
+    /**
+     * פונקציה האוספת את נתוני המשתמש ומפרסמת אובייקט Workout מותאם לאוסף "Workouts" ב-Firestore
+     */
     private void saveStrengthWorkout() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) return;
 
+        // בניית שם דינמי לאימון המשלב את סוג השריר שנבחר (לדוגמה: "Strength - Upper Body")
         Workout newWorkout = new Workout("Strength - " + selectedType, selectedDifficulty, timePicker.getValue(), etNotes.getText().toString(), 0.0);
         newWorkout.setUserId(currentUserId);
         newWorkout.setTimestamp(Timestamp.now());
@@ -88,11 +101,14 @@ public class StrengthActivity extends AppCompatActivity {
                     updateUserStats(currentUserId);
 
                     Toast.makeText(this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
-                    finish();
+                    finish(); // סגירת המסך וחזרה למסך הקודם
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving workout", e));
     }
 
+    /**
+     * פונקציה זהה לחלוטין לזו שבמסך הריצה – מבטיחה סנכרון ואינטגרציה מלאה מול ה-Streak והכוכבים בפרופיל
+     */
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
         //שאילתה שליפת נתוני המשתמש כדי לבדוק מתי עודכן הסטרייק לאחרונה
@@ -120,6 +136,9 @@ public class StrengthActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * פונקציית עזר הבודקת התאמה קלנדרית מלאה בין שני תאריכים (שנה ויום בשנה)
+     */
     private boolean isSameDay(Date d1, Date d2) {
         Calendar cal1 = Calendar.getInstance();
         Calendar cal2 = Calendar.getInstance();
@@ -129,26 +148,37 @@ public class StrengthActivity extends AppCompatActivity {
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
+    /**
+     * פונקציה גנרית המאזינה ללחיצות של קבוצת כפתורים (Radio Group מותאם אישית בכפתורים רגילים).
+     * משתמשת בביטוי למדא (Lambda) ובאינטרפייס הפנימי כדי לעדכן בצורה דינמית את משתני המחלקה.
+     */
     private void setupSelection(Button[] group, OnSelectionListener listener) {
         for (Button b : group) {
             if (b == null) continue;
             b.setOnClickListener(v -> {
-                updateButtonUI(b, group);
-                listener.onSelected(b);
+                updateButtonUI(b, group); // שינוי ויזואלי של הכפתורים
+                listener.onSelected(b);   // הפעלת פונקציית הקולבק לעדכון המשתנה המתאים (סוג או קושי)
             });
         }
     }
 
+    /**
+     * מנקה את העיצוב מכל חברי הקבוצה וצובעת בצבע מלא וטקסט לבן רק את הכפתור שנלחץ כעת
+     */
     private void updateButtonUI(Button selected, Button[] group) {
         for (Button b : group) {
             if (b != null) {
                 b.setBackgroundResource(android.R.color.transparent);
-                b.setTextColor(Color.parseColor("#4A148C"));
+                b.setTextColor(Color.parseColor("#4A148C")); // צבע סגול כהה לאימוני כוח
             }
         }
-        selected.setBackgroundResource(R.drawable.strength_selected);
+        selected.setBackgroundResource(R.drawable.strength_selected); // רקע מעוצב לכפתור הנבחר
         selected.setTextColor(Color.WHITE);
     }
 
+    /**
+     * ממשק (Interface) מקומי המאפשר לבצע פולימורפיזם ולהשתמש באותה פונקציית הבחירה (setupSelection)
+     * גם עבור קבוצת כפתורי הקושי וגם עבור קבוצת כפתורי סוג השריר.
+     */
     interface OnSelectionListener { void onSelected(Button b); }
 }

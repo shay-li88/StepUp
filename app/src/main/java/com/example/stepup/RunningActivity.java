@@ -20,12 +20,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * מסך רישום אימון ריצה (RunningActivity):
+ * מאפשר למשתמש להזין זמן, מרחק (בעזרת רכיבי NumberPicker), רמת קושי והערות.
+ * הנתונים נשמרים ב-Firestore, ובמקביל מתעדכנים מדדי הגיימיפיקציה: כוכבים ורצף אימונים (Streak).
+ */
 public class RunningActivity extends AppCompatActivity {
 
     private Button btnEasy, btnMedium, btnIntense, btnGo;
     private NumberPicker timePicker, distancePicker;
     private EditText etNotes;
-    private String selectedDifficulty = "Easy";
+    private String selectedDifficulty = "Easy"; // רמת הקושי שנבחרה, ברירת מחדל "Easy"
     private FirebaseFirestore db;
     private static final String TAG = "RunningActivity";
 
@@ -46,6 +51,7 @@ public class RunningActivity extends AppCompatActivity {
         etNotes = findViewById(R.id.etRunningNotes);
 
         // הגדרת הגלילים (Time & Distance)
+        // קביעת טווח הערכים של הבוררים (למשל: זמן בין דקה לשעתיים, מרחק בין קילומטר ל-50 ק"מ)
         timePicker.setMinValue(1);
         timePicker.setMaxValue(120);
         timePicker.setValue(30);
@@ -63,6 +69,9 @@ public class RunningActivity extends AppCompatActivity {
         btnGo.setOnClickListener(v -> saveRunningWorkout());
     }
 
+    /**
+     * פונקציה האוספת את הנתונים מהמסך, בונה אובייקט Workout מסוג "Running", ושומרת אותו ב-Firestore
+     */
     private void saveRunningWorkout() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
@@ -70,6 +79,7 @@ public class RunningActivity extends AppCompatActivity {
             return;
         }
 
+        // יצירת אובייקט אימון חדש עם הערכים שנבחרו מה-Pickers
         Workout newWorkout = new Workout("Running", selectedDifficulty, timePicker.getValue(), etNotes.getText().toString(), (double) distancePicker.getValue());
         newWorkout.setUserId(currentUserId);
         newWorkout.setTimestamp(Timestamp.now());
@@ -84,6 +94,7 @@ public class RunningActivity extends AppCompatActivity {
 
                     Toast.makeText(RunningActivity.this, "Workout saved! +3 Stars", Toast.LENGTH_SHORT).show();
 
+                    // מעבר למסך רשימת האימונים וסגירת המסך הנוכחי
                     Intent intent = new Intent(RunningActivity.this, MyWorkoutsActivity.class);
                     startActivity(intent);
                     finish();
@@ -95,6 +106,7 @@ public class RunningActivity extends AppCompatActivity {
     }
 
     // הפונקציה המעודכנת לעדכון כוכבים וסטריק
+    // מנהלת את הלוגיקה החשובה של ניקוד ופרסים על ביצוע האימון
     private void updateUserStats(String uid) {
         DocumentReference userRef = db.collection("users").document(uid);
         // שאילתה שליפת נתוני המשתמש כדי לבדוק מתי עודכן הסטרייק לאחרונה
@@ -102,12 +114,15 @@ public class RunningActivity extends AppCompatActivity {
             if (doc.exists()) {
                 //שאילתה עדכון מספר הכוכבים
                 // 1. תמיד מוסיפים 3 כוכבים על כל אימון
+                // שימוש ב-FieldValue.increment מבטיח הוספה בטוחה בשרת ללא דריסת נתונים
                 userRef.update("totalStars", FieldValue.increment(3));
 
                 // 2. לוגיקה לסטריק: רק אם זה האימון הראשון היום
                 Timestamp lastUpdateTS = doc.getTimestamp("lastStreakUpdate");
                 Date today = new Date();
 
+                // הגנה קריטית: בודקים אם המשתמש כבר התאמן היום.
+                // אם אין תיעוד קודם (null) או שהאימון האחרון היה ביום אחר - מעלים את הסטריק ב-1
                 if (lastUpdateTS == null || !isSameDay(lastUpdateTS.toDate(), today)) {
                     // שאילתה עדכון הסטרייק ותיעוד זמן העדכון האחרון
                     userRef.update(
@@ -116,6 +131,7 @@ public class RunningActivity extends AppCompatActivity {
                     );
                     Log.d("Points", "Streak incremented for today!");
                 } else {
+                    // אם המשתמש כבר התאמן היום ועושה אימון שני, הסטריק לא יעלה שוב (מניעת ניצול לרעה/Spam)
                     Log.d("Points", "Streak already updated today, skipping increment.");
                 }
             }
@@ -123,6 +139,7 @@ public class RunningActivity extends AppCompatActivity {
     }
 
     // פונקציית עזר לבדיקה אם מדובר באותו יום קלנדרי
+    // משווה בין השנה והיום בשנה של שני תאריכים כדי לקבוע אם הם חלים באותו יום
     private boolean isSameDay(Date d1, Date d2) {
         Calendar cal1 = Calendar.getInstance();
         Calendar cal2 = Calendar.getInstance();
@@ -132,15 +149,21 @@ public class RunningActivity extends AppCompatActivity {
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
+    /**
+     * מגדירה את אירוע הלחיצה על כפתורי הקושי - צובעת את הכפתור שנבחר ומעדכנת את המשתנה
+     */
     private void setupDifficulty(Button clickedBtn) {
         clickedBtn.setOnClickListener(v -> {
-            resetButtons();
-            clickedBtn.setBackgroundResource(R.drawable.selected_difficulty);
+            resetButtons(); // החזרת כל הכפתורים למראה הרגיל שלהם
+            clickedBtn.setBackgroundResource(R.drawable.selected_difficulty); // החלת עיצוב ייחודי לכפתור הנבחר
             clickedBtn.setTextColor(Color.WHITE);
-            selectedDifficulty = clickedBtn.getText().toString();
+            selectedDifficulty = clickedBtn.getText().toString(); // שמירת הטקסט (Easy/Medium/Intense)
         });
     }
 
+    /**
+     * פונקציית עזר שמנקה את העיצוב משלושת כפתורי הקושי (הופכת רקע לשקוף ומחזירה צבע פונט ירוק)
+     */
     private void resetButtons() {
         Button[] btns = {btnEasy, btnMedium, btnIntense};
         for (Button b : btns) {
