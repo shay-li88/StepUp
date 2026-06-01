@@ -242,34 +242,38 @@ public class ProfileActivity extends AppCompatActivity {
      * רק את מסמכי האימונים ששייכים ל-userId הספציפי שמחובר כרגע.
      */
     private void loadWorkoutStats() {
+        //שאילתה שליפת היסטוריה של המשתמש
         db.collection("Workouts")
-                .whereEqualTo("userId", userId)
+                .whereEqualTo("userId", userId) //סינון רק האימונים שלי
                 .addSnapshotListener((querySnap, e) -> {
                     if (e != null) return;
                     if (querySnap != null) {
                         int workoutCount = querySnap.size(); // ספירת סך כל האימונים שבוצעו
                         int calculatedStars = workoutCount * 3; // לוגיקה עסקית: כל אימון מעניק 3 כוכבים
-
+                        // מציג את מספר האימונים על המסך
                         tvWorkouts.setText(String.valueOf(workoutCount));
+                        // מציג את מספר הכוכבים על המסך
                         tvStars.setText(String.valueOf(calculatedStars));
-
-                        // שאילתת עדכון (Write Query) השומרת ומסנכרנת את סך הכוכבים המחושב בחזרה למסמך המשתמש
-                        db.collection("users").document(userId).update("totalStars", calculatedStars);
-
-                        // שליחת רשימת מסמכי האימונים הגולמיים לעיבוד וריסוק הנתונים עבור הגרף
+                        // שאילתת עדכון השומרת בדאטה בייס ומסנכרנת
+                        // את סך הכוכבים המחושב בחזרה למסמך המשתמש
+                        db.collection("users").document(userId)
+                                .update("totalStars", calculatedStars);
+                        // שאילתה שליחת מסמכי אימונים והצגתם בגרף השבועי
                         updateChartWithRealData(querySnap.getDocuments());
                     }
                 });
     }
 
-    /**
-     * ה"מוח" מאחורי עיבוד הנתונים של הגרף: הפונקציה עוברת על כל היסטוריית האימונים,
-     * ממיינת אותם לפי ימי השבוע (ראשון-שבת), סוכמת את דקות האימון, וקובעת איזה סוג אימון היה הדומיננטי בכל יום.
+    /**הפונקציה עוברת על כל היסטוריית האימונים,
+     * ממיינת אותם לפי ימי השבוע (ראשון-שבת), סוכמת את דקות האימון,
+     * וקובעת איזה סוג אימון היה הדומיננטי בכל יום.
      */
     private void updateChartWithRealData(List<DocumentSnapshot> workouts) {
-        float[] daysTimeSum = new float[7]; // מערך בגודל 7 המייצג את סך כל דקות האימון לכל יום בשבוע
+        float[] daysTimeSum = new float[7]; // מערך בגודל 7 המייצג את סך
+        // כל דקות האימון לכל יום בשבוע
 
-        // רשימה של HashMaps שתשמש אותנו כטבלת שכיחויות וזמנים לכל סוג אימון בכל יום בנפרד
+        // רשימה של HashMaps שתשמש אותנו כטבלת שכיחויות
+        // וזמנים לכל סוג אימון בכל יום בנפרד
         ArrayList<java.util.HashMap<String, Long>> typesTimeCounter = new ArrayList<>();
         for (int i = 0; i < 7; i++) typesTimeCounter.add(new java.util.HashMap<>());
 
@@ -280,7 +284,7 @@ public class ProfileActivity extends AppCompatActivity {
             Object timestampObj = doc.get("timestamp");
             Date date = null;
 
-            // המרה בטוחה (Safe Casting) של ה-Timestamp שחוזר מהענן לפורמט Date של Java
+            // המרה בטוחה של ה-Timestamp שחוזר מהענן לפורמט Date של Java
             if (timestampObj instanceof com.google.firebase.Timestamp) {
                 date = ((com.google.firebase.Timestamp) timestampObj).toDate();
             } else if (timestampObj instanceof Long) {
@@ -289,13 +293,15 @@ public class ProfileActivity extends AppCompatActivity {
 
             if (date != null) {
                 cal.setTime(date);
-                // שליפת היום בשבוע (נעה בין 1 ל-7, אנו מפחיתים 1 כדי להתאים למערכים שמתחילים מ-0)
+                // שליפת היום בשבוע (נעה בין 1 ל-7,
+                // אנו מפחיתים 1 כדי להתאים למערכים שמתחילים מ-0)
                 int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1;
                 Long workoutMinutes = doc.getLong("time");
                 String type = doc.getString("type");
 
                 if (workoutMinutes != null) {
-                    daysTimeSum[dayOfWeek] += workoutMinutes; // הוספת הדקות של האימון הנוכחי לסך הכל היומי
+                    daysTimeSum[dayOfWeek] += workoutMinutes;
+                    // הוספת הדקות של האימון הנוכחי לסך הכל היומי
 
                     if (type != null) {
                         java.util.HashMap<String, Long> dayMap = typesTimeCounter.get(dayOfWeek);
@@ -306,13 +312,15 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
 
-        // שלב ב': בניית מערך העמודות (BarEntries) לגרף והתאמת צבע העמודה לסוג האימון הדומיננטי
-        ArrayList<BarEntry> entries = new ArrayList<>();
-        ArrayList<Integer> colors = new ArrayList<>();
+        // שלב ב': בניית מערך העמודות
+        // לגרף והתאמת צבע העמודה לסוג האימון הדומיננטי
+        ArrayList<BarEntry> entries = new ArrayList<>(); // רשימת העמודות הפיזיות של הגרף
+        ArrayList<Integer> colors = new ArrayList<>(); // רשימת הצבעים של העמודות
 
         for (int i = 0; i < 7; i++) {
-            entries.add(new BarEntry(i, daysTimeSum[i])); // מיקום X הוא היום (0=Sun), מיקום Y הוא סך הדקות
-
+            // מיקום X הוא היום (0=Sun), מיקום Y הוא סך הדקות
+            entries.add(new BarEntry(i, daysTimeSum[i]));
+    //אלגוריתם שמוצא מה היה האימון הדומיננטי ביותר באותו יום
             String dominantType = "";
             long maxMinutes = -1;
 
@@ -325,23 +333,27 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 }
             }
-            // קריאה לפונקציית צבעים שמחזירה את הקוד הצבעוני המתאים לסוג האימון הדומיננטי
+            // קריאה לפונקציית צבעים להוספת
+            // הצבע המתאים לסוג האימון הדומיננטי
             colors.add(getColorForType(dominantType));
         }
 
-        // שלב ג': הזנת הנתונים המעובדים לתוך רכיב ה-BarChart של הספרייה ורענונו
+        // שלב ג': הזנת הנתונים לתוך
+        // רכיב ה-BarChart של הספרייה ורענונו
         BarDataSet dataSet = new BarDataSet(entries, "Workout Duration (Minutes)");
         dataSet.setColors(colors); // הגדרת מערך הצבעים הדינמי לעמודות
         dataSet.setDrawValues(true); // הצגת הערך המספרי המדויק (דקות) מעל כל עמודה בגרף
 
-        barChart.setData(new BarData(dataSet));
-        // הגדרת תוויות הימים בציר ה-X של הגרף
-        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}));
-        barChart.invalidate(); // פקודה קריטית המאלצת את הרכיב לצייר את עצמו מחדש עם הנתונים החדשים
+        barChart.setData(new BarData(dataSet)); //השמת הנתונים בגרף
+        // החלפת המספרים 0-6 בציר ה-X של הגרף לימים אמיתיים
+        barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter
+       (new String[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}));
+        // פקודה קריטית המאלצת את הרכיב
+        // לצייר את עצמו מחדש עם הנתונים החדשים
+        barChart.invalidate();
     }
 
-    /**
-     * פונקציה המחזירה ייצוג צבעוני קבוע (Color Hex) בהתאם למילות המפתח של סוג האימון.
+    /**פונקציה המחזירה ייצוג צבעוני קבוע בהתאם למילות המפתח של סוג האימון.
      * מיושם עם חסינות לשגיאות כתיב (אותיות קטנות/גדולות ורווחים מיותרים).
      */
     private int getColorForType(String type) {
@@ -375,9 +387,8 @@ public class ProfileActivity extends AppCompatActivity {
         barChart.getLegend().setEnabled(false);      // הסרת המקרא (Legend) התחתון
     }
 
-    /**
-     * פונקציה המחשבת באופן אטומי ומקומי את ותק המשתמש באפליקציה (בימים)
-     * באמצעות משיכת חותמת זמן הרישום המקורית מתוך ה-Metadata של השרת.
+    /*** פונקציה המחשבת באופן מקומי את ותק המשתמש באפליקציה (בימים)
+   *  לא נשמר בדאטה בייס כדי לחסוך במקום אלא מחושב דינמית ע"י שליפת זמן יצירת החשבון.
      */
     private void updateSeniorityStatus() {
         if (mAuth.getCurrentUser() != null) {

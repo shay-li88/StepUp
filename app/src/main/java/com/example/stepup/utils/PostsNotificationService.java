@@ -21,13 +21,12 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.Map;
 
-/**
- * רכיב Service (שירות) הרץ ברקע ומאזין לשינויים ב-Firestore.
+/*רכיב Service (שירות) הרץ ברקע ומאזין לשינויים ב-Firestore.
  * השירות אחראי להקפיץ התראה למכשיר ברגע שמשתמש אחר מעלה פוסט חדש באפליקציה.
  */
 public class PostsNotificationService extends Service {
     private static final String POST_CHANNEL_ID = "POST_CHANNEL_ID"; // מזהה ייחודי לערוץ ההתראות (חובה מאנדרואיד 8.0 ומעלה)
-    private boolean mAfterFirstDBLoad; // דגל המונע קפיצת התראות על פוסטים ישנים בזמן טעינת האפליקציה
+    private boolean mAfterFirstDBLoad; // מניעת התראות על פוסטים מהעבר
     private static final String TAG = "StepUp_Service"; // תגית לניהול מעקב ומציאת השירות ב-Logcat
 
     @Override
@@ -42,18 +41,15 @@ public class PostsNotificationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand: Service started with ID: " + startId);
-        mAfterFirstDBLoad = false; // אתחול הדגל בכל הפעלה מחדש של השירות
+        mAfterFirstDBLoad = false; // אתחול בכל הפעלה מחדש של השירות
         createPostNotificationChannel(); // יצירת ערוץ ההתראות במערכת ההפעלה
 
-        // הפיכת השירות ל-Foreground Service (שירות קדמה) על ידי שליחת התראה קבועה.
+        // הפיכת השירות ל-Foreground Service על ידי שליחת התראה קבועה.
         // זה מונע ממערכת ההפעלה להרוג את השירות כשהאפליקציה נסגרת.
         Log.d(TAG, "onStartCommand: Initializing foreground notification");
         sendNotification("StepUp is active", "Looking for new posts...", 1, true);
 
         listenToChangesInPosts(); // הפעלת ההאזנה ל-Firestore בזמן אמת
-
-        // START_STICKY: פקודה קריטית למערכת ההפעלה. אם השירות נסגר בגלל מחסור בזיכרון,
-        // אנדרואיד תנסה להקים אותו לתחייה באופן אוטומטי ברגע שהמשאבים יתפנו.
         return START_STICKY;
     }
 
@@ -158,12 +154,11 @@ public class PostsNotificationService extends Service {
         // זה מבטיח שאם המשתמש ילחץ על כפתור 'חזור' מתוך מסך הבית אליו הגיע מההתראה, האפליקציה תיסגר בצורה מסודרת ולא תתנהג מוזר.
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
         stackBuilder.addNextIntentWithParentStack(resultIntent);
-
-        // עטיפת ה-Intent בתוך PendingIntent (אישור מראש למערכת ההפעלה לבצע את המעבר בשמנו, גם כשהאפליקציה סגורה)
+        //PendingIntent (אישור מראש למערכת ההפעלה לבצע את המעבר גם כשהאפליקציה סגורה)
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // בניית העיצוב והתכונות של ההתראה (אייקון, כותרת, תוכן, ואוטו-קנסל למחיקה בלחיצה)
+        // בניית העיצוב והתכונות של ההתראה
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, POST_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground) // האייקון הקטן שיופיע בשורת הסטטוס למעלה
                 .setContentTitle(title)
@@ -175,7 +170,7 @@ public class PostsNotificationService extends Service {
         Notification notification = builder.build();
 
         if (startForeground) {
-            // החלק שהופך את השירות ל-Foreground (דורש הצגת התראה קבועה למשתמש, כמו אפליקציות מוזיקה או ניווט)
+            // החלק שהופך את השירות ל-Foreground (דורש הצגת התראה קבועה למשתמש)
             Log.i(TAG, "sendNotification: Starting service in foreground mode");
             startForeground(notificationId, notification);
         } else {

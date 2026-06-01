@@ -131,7 +131,8 @@ public class RunningActivity extends AppCompatActivity {
                     );
                     Log.d("Points", "Streak incremented for today!");
                 } else {
-                    // אם המשתמש כבר התאמן היום ועושה אימון שני, הסטריק לא יעלה שוב (מניעת ניצול לרעה/Spam)
+                    // אם המשתמש כבר התאמן היום ועושה אימון שני,
+                    // הסטריק לא יעלה שוב
                     Log.d("Points", "Streak already updated today, skipping increment.");
                 }
             }

@@ -98,15 +98,14 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
             String sharedContent = "Just finished a " + workout.getTime() + " min " + type + " session. Feeling great! #StepUp";
 
             // הזרקת המידע ל-Intent (מפתח וערך) כדי שמסך היעד ידע לקרוא אותם ולשתול אותם בתיבות הטקסט
-            intent.putExtra("isShared", true);
+            intent.putExtra("isShared", true); //הגיע דרך כפתור השיתוף
             intent.putExtra("sharedTitle", sharedTitle);
             intent.putExtra("sharedContent", sharedContent);
-
-            // העברת נתוני אימון גולמיים כדי שהפוסט המיוצר ייצבע ויוצג עם תג (Badge) מותאם
+            // העברת נתוני אימון גולמיים כדי שהפוסט המיוצר ייצבע ויוצג עם תג מותאם
             intent.putExtra("workoutType", type);
             intent.putExtra("workoutDetails", workout.getTime() + " min • " + workout.getDifficulty());
 
-            context.startActivity(intent); // ביצוע המעבר בפועל
+            context.startActivity(intent); // ביצוע המעבר למסך הבא (הוסף פוסט) בפועל
         });
     }
 
