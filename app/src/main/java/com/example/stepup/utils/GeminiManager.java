@@ -24,7 +24,7 @@ public class GeminiManager {
     // שימוש בגרסה היציבה והמהירה ביותר למובייל
     private static final String modelVersion = "gemini-2.5-flash";
     private static final String TAG = "GeminiManager";
-
+//
     private GeminiManager() {}
 
     public static GeminiManager getInstance() {
@@ -56,28 +56,31 @@ public class GeminiManager {
         GenerativeModelFutures model = GenerativeModelFutures.from(ai);
 
         Content.Builder builder = new Content.Builder();
-        if (bitmap != null) builder.addImage(bitmap);
-        if (bytes != null) builder.addInlineData(bytes, mimeType);
+        if (bitmap != null) builder.addImage(bitmap); // אם המשתמש שלח תמונה - היא מתווספת לחבילה
+        if (bytes != null) builder.addInlineData(bytes, mimeType); //הכנסת הנתונים לפרומט
 
         Content prompt = builder.addText(promptStr).build();
 
-        // הרצה על ה-Main Thread כדי שנוכל לעדכן את ה-UI בקלות
+        // 2. הגדרת השרשור (Executor) שעליו נרצה לקבל את התשובה - ה-Main Thread
         Executor executor = ContextCompat.getMainExecutor(context);
+        // 1. שליחת הבקשה ברקע ומייד קבלת אובייקט "הבטחה לתשובה" (Future)
         ListenableFuture<GenerateContentResponse> response = model.generateContent(prompt);
-
+        // 3. הגדרת ה-Callback (מה לעשות כשהתשובה תחזור)
         Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
             @Override
             public void onSuccess(GenerateContentResponse result) {
+                // קורה כשהשרת של גוגל מחזיר תשובה מושלמת
                 Log.d(TAG, "onSuccess: Response received");
                 callback.onSuccess(result.getText());
             }
 
             @Override
             public void onFailure(Throwable t) {
+                // קורה אם אין אינטרנט, ה-API key שגוי או שהייתה שגיאה בשרת
                 Log.e(TAG, "onFailure: " + t.getMessage());
                 callback.onError(t);
             }
-        }, executor);
+        }, executor); // ה-executor מבטיח ששתי המתודות האלו ירוצו על ה-Main Thread!
     }
 
     // ממשק (Interface) לקבלת התשובה מה-AI

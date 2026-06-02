@@ -89,15 +89,15 @@ public class ChallengesActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * פונקציה לטעינת אתגר שמור ממסמך המשתמש (שליפה חד-פעמית באמצעות .get())
+    /**פונקציה לטעינת אתגר שמור ממסמך המשתמש (שליפה חד-פעמית באמצעות .get())
      * מונעת מהמשתמש לבזבז קריאות AI מיותרות בכל פעם שהוא נכנס למסך.
      */
     private void loadSavedChallenge() {
         String uid = mAuth.getUid();
         if (uid == null) return;
 
-        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+        db.collection("users").document(uid).get().
+          addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
                 // משיכת הטקסט השמור של האתגר האחרון שיוצר
                 String savedChallenge = documentSnapshot.getString("lastAiChallenge");
@@ -149,10 +149,10 @@ public class ChallengesActivity extends AppCompatActivity {
     private void fetchWorkoutsAndGenerateChallenge() {
         String uid = mAuth.getUid();
         if (uid == null) return;
-
+        //
         db.collection("Workouts")
                 .whereEqualTo("userId", uid)
-                .limit(5)
+                .limit(5) // מביא רק את ה-5 האחרונים
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     // הגנה: אם המשתמש מעולם לא התאמן, אין ל-AI נתונים לנתח
@@ -183,13 +183,12 @@ public class ChallengesActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * מציגה הודעה ידידותית אם המשתמש עדיין לא ביצע אף אימון, ומפנה אותו להתאמן
+    /** מציגה הודעה ידידותית אם המשתמש עדיין לא ביצע אף אימון, ומפנה אותו להתאמן
      */
     private void showNoWorkoutsMessage() {
         cardResult.setVisibility(View.VISIBLE);
         tvAiResponse.setText("עדיין לא נרשמו אימונים במערכת.\n\nכדי שאוכל לייצר לך אתגר מותאם אישית, כדאי להתחיל להתאמן!");
-        btnGenerate.setText("יאללה, בוא נתחיל להתאמן!");
+        btnGenerate.setText("בוא נתחיל להתאמן!");
         btnGenerate.setOnClickListener(v -> startActivity(new Intent(this, MyWorkoutsActivity.class)));
     }
 

@@ -52,7 +52,9 @@ public class UserImageSelector {
 
     private OnResultCallback resultCallback;
     private static final String TAG = "UserImageSelector";
-
+//היא אחראית לנהל את כל תהליך בחירת תמונת הפרופיל של המשתמש – החל מפתיחת תפריט הבחירה
+// , דרך הפעלת המצלמה או הגלריה של המכשיר, ועד
+// להצגת התמונה על המסך והפיכתה לקובץ פיזי שמוכן להעלאה לענן.
     public UserImageSelector(AppCompatActivity activity, ImageView imageView, OnResultCallback resultCallback){
         this.activity = activity;
         this.imageView = imageView;
@@ -104,13 +106,12 @@ public class UserImageSelector {
         // Registers a photo picker activity launcher in single-select mode.
         pickMedia =
                 activity.registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-                    // Callback is invoked after the user selects a media item or closes the
-                    // photo picker.
+                    // א) המשתמש בחר תמונה מהגלריה:
                     if (uri != null) {
                         Log.d(TAG, "PhotoPicker: Selected URI: " + uri);
-                        this.imageUri = uri;
-                        imageView.setImageURI(uri);
-                        resultCallback.onResult(true, uri.toString(), "");
+                        this.imageUri = uri; // שמירת הכתובת המקומית של התמונה
+                        imageView.setImageURI(uri); // שתילת התמונה ישירות ברכיב הויזואלי על המסך
+                        resultCallback.onResult(true, uri.toString(), ""); // דיווח למסך שהצלחנו!
                     } else {
                         Log.d(TAG, "PhotoPicker: No media selected");
                         resultCallback.onResult(false, "", "No media selected");
@@ -122,15 +123,17 @@ public class UserImageSelector {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     Log.d(TAG, "Got a camera result");
+                    // ב) המשתמש צילם תמונה במצלמה:
                     if (result.getResultCode() == RESULT_OK) {
                         Log.d(TAG, "Camera result code is ok");
                         // Handle successful photo capture
                         Intent data = result.getData();
-                        Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                        //שליפת התמונה
+                        Bitmap bitmap = (Bitmap) data.getExtras().get("data"); // שליפת התמונה כ-Bitmap
                         if (bitmap != null) {
                             Log.d(TAG, "setting bitmap");
-                            imageView.setImageBitmap(bitmap);
-                            this.imageBitmap = bitmap;
+                            imageView.setImageBitmap(bitmap); // שתילת התמונה המצולמת ב-UI
+                            this.imageBitmap = bitmap; // שמירת אובייקט ה-Bitmap בזיכרון
                             resultCallback.onResult(true,"", "");
 
                         } else {
@@ -148,16 +151,17 @@ public class UserImageSelector {
 
         Log.d(TAG, "InitResultLaunchers: done");
     }
-
+        //הפונקציה createImageFile בודקת
+        // מאיפה הגיעה התמונה וקוראת למחלקת עזר אחרת
     public File createImageFile()
     {
         if(imageUri != null)
-        {
+        {   // אם התמונה מהגלריה - הופך את ה-Uri לקובץ פיזי
             Log.d(TAG, "createImageFile: creating image from uri");
             return ImageFileCreator.createTempFileFromUri(imageUri, activity);
         }
         else if(imageBitmap != null)
-        {
+        {   // אם התמונה מהמצלמה - הופך את ה-Bitmap לקובץ פיזי
             Log.d(TAG, "createImageFile: creating image from bitmap");
             return ImageFileCreator.createTempFileFromBitmap(imageBitmap, activity);
         }

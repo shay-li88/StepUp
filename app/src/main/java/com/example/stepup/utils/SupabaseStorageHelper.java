@@ -12,7 +12,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
+//מחלקת עזר שאחראית לקחת את הקובץ הפיזי שנוצר במכשיר ולהעלות אותו
+// לשרת הענן באמצעות ספריית הרשת Retrofit, תוך שימוש במפתח אבטחה (API Key).
 public class SupabaseStorageHelper {
     private static final String supabaseUrl = "https://rgxefgovfehmniygqynk.supabase.co";
     private static final String supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJneGVmZ292ZmVobW5peWdxeW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODgwNDUsImV4cCI6MjA4MTI2NDA0NX0.Ejt0OaVVY8JAe7kqxUHTGlj-Y233oa3RXGP2KQu_IZo";
@@ -35,8 +36,10 @@ public class SupabaseStorageHelper {
                     .build();
 
             SupabaseStorageService service = retrofit.create(SupabaseStorageService.class);
-
+            // 1. אומרים למערכת שהקובץ הוא מסוג תמונת JPEG
             RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
+            // 2. אורזים את הקובץ בתוך רכיב MultipartBody עם
+        // שם המפתח שהשרת מצפה לקבל ("file") ושם הקובץ בענן (filePath)
             MultipartBody.Part body = MultipartBody.Part.createFormData("file", filePath, requestFile);
 
             String bearer = "Bearer " + supabaseKey;
